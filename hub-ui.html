@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Central Hub — IT Department</title>
+<style>
+  :root {
+    --navy: #0a1a2f;
+    --navy-light: #12233d;
+    --navy-lighter: #1a2f4d;
+    --gold: #c9a227;
+    --gold-light: #e0c158;
+    --cream: #f4efe2;
+    --text-muted: #9aa8bd;
+    --up-green: #3ecf6e;
+    --down-red: #e0524f;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--navy);
+    color: var(--cream);
+    min-height: 100vh;
+    padding: 32px 16px;
+  }
+  header {
+    text-align: center;
+    margin-bottom: 32px;
+    border-bottom: 2px solid var(--gold);
+    padding-bottom: 16px;
+  }
+  header h1 {
+    color: var(--gold-light);
+    letter-spacing: 2px;
+    margin: 0 0 4px;
+    font-size: 28px;
+  }
+  header p {
+    color: var(--text-muted);
+    margin: 0;
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .card {
+    background: var(--navy-light);
+    border: 1px solid var(--gold);
+    border-radius: 6px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+  }
+  .card h2 {
+    color: var(--gold-light);
+    font-size: 18px;
+    margin: 0 0 16px;
+    letter-spacing: 1px;
+    border-bottom: 1px solid var(--navy-lighter);
+    padding-bottom: 8px;
+  }
+  .system-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--navy-lighter);
+  }
+  .system-row:last-child { border-bottom: none; }
+  .system-name { font-size: 15px; }
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .status-pill.up { background: rgba(62, 207, 110, 0.15); color: var(--up-green); }
+  .status-pill.down { background: rgba(224, 82, 79, 0.15); color: var(--down-red); }
+  .status-pill.checking { background: rgba(154, 168, 189, 0.15); color: var(--text-muted); }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: currentColor;
+  }
+  .response-time {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-left: 10px;
+  }
+  .refresh-btn {
+    background: var(--navy-lighter);
+    color: var(--gold-light);
+    border: 1px solid var(--gold);
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+  }
+  .refresh-btn:hover { background: var(--gold); color: var(--navy); }
+  .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .search-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  input[type="text"] {
+    flex: 1;
+    background: var(--navy);
+    border: 1px solid var(--navy-lighter);
+    color: var(--cream);
+    padding: 10px 14px;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 14px;
+  }
+  input[type="text"]:focus {
+    outline: none;
+    border-color: var(--gold);
+  }
+  .lookup-btn {
+    background: var(--gold);
+    color: var(--navy);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: bold;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+  }
+  .lookup-btn:hover { background: var(--gold-light); }
+  .lookup-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .profile-grid {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    row-gap: 10px;
+    column-gap: 12px;
+    margin-top: 16px;
+  }
+  .profile-grid .label {
+    color: var(--text-muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .profile-grid .value {
+    color: var(--cream);
+    font-size: 15px;
+  }
+  .empty-state, .error-state {
+    color: var(--text-muted);
+    font-size: 14px;
+    padding: 12px 0;
+  }
+  .error-state { color: var(--down-red); }
+  .readonly-badge {
+    display: inline-block;
+    background: var(--navy-lighter);
+    color: var(--gold-light);
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-left: 10px;
+  }
+  footer {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-top: 30px;
+    letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Central Hub</h1>
+  <p>IT Department &middot; Group 3 &middot; Read-Only Monitor</p>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <h2>System Status <span class="readonly-badge">Live</span></h2>
+    <div id="statusList">
+      <div class="empty-state">Checking systems...</div>
+    </div>
+    <div style="margin-top: 16px; text-align: right;">
+      <button class="refresh-btn" id="refreshBtn" onclick="checkStatus()">Refresh Status</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Student Lookup <span class="readonly-badge">View Only</span></h2>
+    <div class="search-row">
+      <input type="text" id="studentIdInput" placeholder="Enter Student ID (e.g. 2023-00456)">
+      <button class="lookup-btn" id="lookupBtn" onclick="lookupStudent()">Search</button>
+    </div>
+    <div id="profileResult">
+      <div class="empty-state">Enter a student ID above to view their record via Student Records.</div>
+    </div>
+  </div>
+
+</div>
+
+<footer>Central Hub — Group 3 &middot; Data view only, no editing permitted here</footer>
+
+<script>
+  // Point this at your deployed Hub URL once it's live on Render.
+  // For local testing, keep it as localhost.
+  const HUB_BASE_URL = 'http://localhost:4000';
+
+  const statusList = document.getElementById('statusList');
+  const refreshBtn = document.getElementById('refreshBtn');
+  const studentIdInput = document.getElementById('studentIdInput');
+  const lookupBtn = document.getElementById('lookupBtn');
+  const profileResult = document.getElementById('profileResult');
+
+  async function checkStatus() {
+    refreshBtn.disabled = true;
+    statusList.innerHTML = '<div class="empty-state">Checking systems...</div>';
+    try {
+      const res = await fetch(`${HUB_BASE_URL}/hub/status`);
+      const data = await res.json();
+      const entries = Object.entries(data);
+      if (entries.length === 0) {
+        statusList.innerHTML = '<div class="empty-state">No systems registered yet.</div>';
+      } else {
+        statusList.innerHTML = entries.map(([key, sys]) => `
+          <div class="system-row">
+            <span class="system-name">${sys.name || key}</span>
+            <span>
+              <span class="status-pill ${sys.status}">
+                <span class="dot"></span>${sys.status}
+              </span>
+              ${sys.responseTimeMs !== undefined ? `<span class="response-time">${sys.responseTimeMs} ms</span>` : ''}
+            </span>
+          </div>
+        `).join('');
+      }
+    } catch (err) {
+      statusList.innerHTML = `<div class="error-state">Could not reach the Hub: ${err.message}</div>`;
+    } finally {
+      refreshBtn.disabled = false;
+    }
+  }
+
+  async function lookupStudent() {
+    const id = studentIdInput.value.trim();
+    if (!id) return;
+    lookupBtn.disabled = true;
+    profileResult.innerHTML = '<div class="empty-state">Looking up student...</div>';
+    try {
+      const res = await fetch(`${HUB_BASE_URL}/hub/students/${encodeURIComponent(id)}`);
+      const data = await res.json();
+      if (!res.ok) {
+        profileResult.innerHTML = `<div class="error-state">${data.error || 'Student not found.'}</div>`;
+        return;
+      }
+      const fields = [
+        ['Student ID', data.student_id],
+        ['Full Name', data.full_name],
+        ['Contact Number', data.contact_number],
+        ['Email', data.email],
+        ['Address', data.address],
+        ['Year Level', data.year_level],
+        ['Section', data.section],
+        ['Enrollment Status', data.enrollment_status]
+      ];
+      profileResult.innerHTML = `
+        <div class="profile-grid">
+          ${fields.map(([label, value]) => `
+            <div class="label">${label}</div>
+            <div class="value">${value ?? '—'}</div>
+          `).join('')}
+        </div>
+      `;
+    } catch (err) {
+      profileResult.innerHTML = `<div class="error-state">Failed to reach the Hub: ${err.message}</div>`;
+    } finally {
+      lookupBtn.disabled = false;
+    }
+  }
+
+  studentIdInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') lookupStudent();
+  });
+
+  checkStatus();
+</script>
+
+</body>
+</html>
