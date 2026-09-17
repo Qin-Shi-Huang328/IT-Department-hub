@@ -51,5 +51,16 @@ app.get('/hub/students/:id', async (req, res) => {
   }
 });
 
+// Proxy: get a student's grades through the Hub
+app.get('/hub/students/:id/grades', async (req, res) => {
+  try {
+    const r = await fetch(`${REGISTRY['student-records'].baseUrl}/api/students/${req.params.id}/grades`);
+    const data = await r.json();
+    res.status(r.status).json(data);
+  } catch (err) {
+    res.status(502).json({ error: 'Failed to reach Student Records system', details: err.message });
+  }
+});
+
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`Central Hub running on port ${PORT}`));

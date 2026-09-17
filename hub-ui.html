@@ -180,6 +180,39 @@
     margin-top: 30px;
     letter-spacing: 0.5px;
   }
+  .grades-heading {
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid var(--navy-lighter);
+    color: var(--gold-light);
+    font-size: 14px;
+    letter-spacing: 0.5px;
+  }
+  .grades-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 13px;
+  }
+  .grades-table th {
+    text-align: left;
+    color: var(--text-muted);
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--navy-lighter);
+  }
+  .grades-table td {
+    padding: 8px;
+    color: var(--cream);
+    border-bottom: 1px solid var(--navy-lighter);
+  }
+  .grades-empty {
+    color: var(--text-muted);
+    font-size: 13px;
+    padding: 10px 0;
+  }
 </style>
 </head>
 <body>
@@ -285,7 +318,43 @@
             <div class="value">${value ?? '—'}</div>
           `).join('')}
         </div>
+        <div class="grades-heading">Grades</div>
+        <div id="gradesArea"><div class="grades-empty">Loading grades...</div></div>
       `;
+
+      // Fetch grades separately so a grades failure doesn't blank out the profile
+      const gradesArea = document.getElementById('gradesArea');
+      try {
+        const gRes = await fetch(`${HUB_BASE_URL}/hub/students/${encodeURIComponent(id)}/grades`);
+        const grades = await gRes.json();
+        if (!gRes.ok) {
+          gradesArea.innerHTML = `<div class="grades-empty">${grades.error || 'Could not load grades.'}</div>`;
+        } else if (!Array.isArray(grades) || grades.length === 0) {
+          gradesArea.innerHTML = '<div class="grades-empty">No grades on file yet.</div>';
+        } else {
+          gradesArea.innerHTML = `
+            <table class="grades-table">
+              <thead>
+                <tr><th>Subject</th><th>Name</th><th>S.Y.</th><th>Sem</th><th>Grade</th><th>Remarks</th></tr>
+              </thead>
+              <tbody>
+                ${grades.map(g => `
+                  <tr>
+                    <td>${g.subject_code ?? '—'}</td>
+                    <td>${g.subject_name ?? '—'}</td>
+                    <td>${g.school_year ?? '—'}</td>
+                    <td>${g.semester ?? '—'}</td>
+                    <td>${g.grade ?? '—'}</td>
+                    <td>${g.remarks ?? '—'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `;
+        }
+      } catch (gErr) {
+        gradesArea.innerHTML = `<div class="grades-empty">Failed to reach the Hub for grades: ${gErr.message}</div>`;
+      }
     } catch (err) {
       profileResult.innerHTML = `<div class="error-state">Failed to reach the Hub: ${err.message}</div>`;
     } finally {
