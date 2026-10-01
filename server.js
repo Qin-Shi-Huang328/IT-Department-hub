@@ -40,6 +40,21 @@ app.get('/hub/status', async (req, res) => {
   res.json(results);
 });
 
+// Proxy: search students by name or ID through the Hub (for Finance lookups)
+app.get('/hub/students/search', async (req, res) => {
+  const q = req.query.q;
+  if (!q || !q.trim()) {
+    return res.status(400).json({ error: 'Query parameter q is required' });
+  }
+  try {
+    const r = await fetch(`${REGISTRY['student-records'].baseUrl}/api/students?search=${encodeURIComponent(q)}`);
+    const data = await r.json();
+    res.status(r.status).json(data);
+  } catch (err) {
+    res.status(502).json({ error: 'Failed to reach Student Records system', details: err.message });
+  }
+});
+
 // Proxy: get a student's profile through the Hub
 app.get('/hub/students/:id', async (req, res) => {
   try {

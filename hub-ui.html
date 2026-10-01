@@ -213,6 +213,46 @@
     font-size: 13px;
     padding: 10px 0;
   }
+  .match-list {
+    margin-top: 14px;
+  }
+  .match-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    border: 1px solid var(--navy-lighter);
+    border-radius: 4px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .match-row:hover {
+    border-color: var(--gold);
+    background: var(--navy-lighter);
+  }
+  .match-name {
+    font-size: 14px;
+    color: var(--cream);
+  }
+  .match-id {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: 'Courier New', monospace;
+  }
+  .match-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: right;
+  }
+  .back-link {
+    display: inline-block;
+    margin-top: 16px;
+    color: var(--gold-light);
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: underline;
+  }
 </style>
 </head>
 <body>
@@ -237,11 +277,11 @@
   <div class="card">
     <h2>Student Lookup <span class="readonly-badge">View Only</span></h2>
     <div class="search-row">
-      <input type="text" id="studentIdInput" placeholder="Enter Student ID (e.g. 2023-00456)">
-      <button class="lookup-btn" id="lookupBtn" onclick="lookupStudent()">Search</button>
+      <input type="text" id="studentIdInput" placeholder="Enter Student ID or Name (full or partial)">
+      <button class="lookup-btn" id="lookupBtn" onclick="searchStudents()">Search</button>
     </div>
     <div id="profileResult">
-      <div class="empty-state">Enter a student ID above to view their record via Student Records.</div>
+      <div class="empty-state">Enter a student ID or name above to view their record via Student Records.</div>
     </div>
   </div>
 
@@ -289,11 +329,62 @@
     }
   }
 
-  async function lookupStudent() {
-    const id = studentIdInput.value.trim();
-    if (!id) return;
+  // Step 1: search by ID or name — may return multiple matches
+  async function searchStudents() {
+    const q = studentIdInput.value.trim();
+    if (!q) return;
     lookupBtn.disabled = true;
-    profileResult.innerHTML = '<div class="empty-state">Looking up student...</div>';
+    profileResult.innerHTML = '<div class="empty-state">Searching...</div>';
+    try {
+      const res = await fetch(`${HUB_BASE_URL}/hub/students/search?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      if (!res.ok) {
+        profileResult.innerHTML = `<div class="error-state">${data.error || 'Search failed.'}</div>`;
+        return;
+      }
+      if (!Array.isArray(data) || data.length === 0) {
+        profileResult.innerHTML = '<div class="empty-state">No students match that search.</div>';
+        return;
+      }
+      if (data.length === 1) {
+        // Only one match — go straight to the full profile
+        showStudentProfile(data[0].student_id);
+        return;
+      }
+      renderMatchList(data);
+    } catch (err) {
+      profileResult.innerHTML = `<div class="error-state">Failed to reach the Hub: ${err.message}</div>`;
+    } finally {
+      lookupBtn.disabled = false;
+    }
+  }
+
+  function renderMatchList(matches) {
+    profileResult.innerHTML = `
+      <div class="empty-state">${matches.length} students match — select the right one:</div>
+      <div class="match-list">
+        ${matches.map(s => `
+          <div class="match-row" data-id="${s.student_id}">
+            <div>
+              <div class="match-name">${s.full_name}</div>
+              <div class="match-id">${s.student_id}</div>
+            </div>
+            <div class="match-meta">
+              Year ${s.year_level ?? '—'} &middot; Sec ${s.section ?? '—'}<br>
+              ${s.enrollment_status ?? '—'}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    profileResult.querySelectorAll('[data-id]').forEach(row => {
+      row.addEventListener('click', () => showStudentProfile(row.dataset.id));
+    });
+  }
+
+  // Step 2: show the full profile + grades for one specific student
+  async function showStudentProfile(id) {
+    profileResult.innerHTML = '<div class="empty-state">Loading student...</div>';
     try {
       const res = await fetch(`${HUB_BASE_URL}/hub/students/${encodeURIComponent(id)}`);
       const data = await res.json();
@@ -320,9 +411,15 @@
         </div>
         <div class="grades-heading">Grades</div>
         <div id="gradesArea"><div class="grades-empty">Loading grades...</div></div>
+        <div class="back-link" id="backToResults">&larr; New search</div>
       `;
 
-      // Fetch grades separately so a grades failure doesn't blank out the profile
+      document.getElementById('backToResults').addEventListener('click', () => {
+        studentIdInput.value = '';
+        profileResult.innerHTML = '<div class="empty-state">Enter a student ID or name above to view their record via Student Records.</div>';
+        studentIdInput.focus();
+      });
+
       const gradesArea = document.getElementById('gradesArea');
       try {
         const gRes = await fetch(`${HUB_BASE_URL}/hub/students/${encodeURIComponent(id)}/grades`);
@@ -357,13 +454,11 @@
       }
     } catch (err) {
       profileResult.innerHTML = `<div class="error-state">Failed to reach the Hub: ${err.message}</div>`;
-    } finally {
-      lookupBtn.disabled = false;
     }
   }
 
   studentIdInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') lookupStudent();
+    if (e.key === 'Enter') searchStudents();
   });
 
   checkStatus();
