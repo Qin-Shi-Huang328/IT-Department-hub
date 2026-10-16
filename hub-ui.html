@@ -30,23 +30,9 @@
     border-bottom: 2px solid var(--gold);
     padding-bottom: 16px;
   }
-  header h1 {
-    color: var(--gold-light);
-    letter-spacing: 2px;
-    margin: 0 0 4px;
-    font-size: 28px;
-  }
-  header p {
-    color: var(--text-muted);
-    margin: 0;
-    font-size: 14px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-  .container {
-    max-width: 900px;
-    margin: 0 auto;
-  }
+  header h1 { color: var(--gold-light); letter-spacing: 2px; margin: 0 0 4px; font-size: 28px; }
+  header p { color: var(--text-muted); margin: 0; font-size: 14px; letter-spacing: 1px; text-transform: uppercase; }
+  .container { max-width: 900px; margin: 0 auto; }
   .card {
     background: var(--navy-light);
     border: 1px solid var(--gold);
@@ -62,17 +48,32 @@
     border-bottom: 1px solid var(--navy-lighter);
     padding-bottom: 8px;
   }
+
+  /* System row — clickable */
   .system-row {
-    padding: 12px 0;
     border-bottom: 1px solid var(--navy-lighter);
+    overflow: hidden;
   }
   .system-row:last-child { border-bottom: none; }
   .system-row-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 12px 0;
+    cursor: pointer;
+    user-select: none;
   }
+  .system-row-top:hover { opacity: 0.85; }
+  .system-name-wrap { display: flex; align-items: center; gap: 10px; }
   .system-name { font-size: 15px; }
+  .chevron {
+    font-size: 11px;
+    color: var(--text-muted);
+    transition: transform 0.2s ease;
+    display: inline-block;
+  }
+  .system-row.open .chevron { transform: rotate(180deg); }
+  .status-right { display: flex; align-items: center; gap: 8px; }
   .status-pill {
     display: inline-flex;
     align-items: center;
@@ -83,25 +84,58 @@
     letter-spacing: 0.5px;
     text-transform: uppercase;
   }
-  .status-pill.up { background: rgba(62, 207, 110, 0.15); color: var(--up-green); }
-  .status-pill.down { background: rgba(224, 82, 79, 0.15); color: var(--down-red); }
-  .status-pill.checking { background: rgba(154, 168, 189, 0.15); color: var(--text-muted); }
+  .status-pill.up { background: rgba(62,207,110,0.15); color: var(--up-green); }
+  .status-pill.down { background: rgba(224,82,79,0.15); color: var(--down-red); }
+  .status-pill.checking { background: rgba(154,168,189,0.15); color: var(--text-muted); }
   .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-  .response-time {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-left: 10px;
+  .response-time { font-size: 12px; color: var(--text-muted); }
+
+  /* Expandable detail panel */
+  .system-detail {
+    display: none;
+    padding: 14px 0 18px;
+    border-top: 1px dashed var(--navy-lighter);
   }
-  .status-error-detail {
-    margin-top: 8px;
-    padding: 8px 12px;
-    background: rgba(224, 82, 79, 0.08);
+  .system-row.open .system-detail { display: block; }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    row-gap: 10px;
+    column-gap: 12px;
+    margin-bottom: 12px;
+  }
+  .detail-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .detail-value { font-size: 14px; color: var(--cream); }
+  .detail-value.green { color: var(--up-green); }
+  .detail-value.red { color: var(--down-red); }
+
+  .error-box {
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: rgba(224,82,79,0.08);
     border-left: 3px solid var(--down-red);
     border-radius: 3px;
     font-size: 12px;
     color: var(--down-red);
     font-family: 'Courier New', monospace;
+    line-height: 1.6;
   }
+  .healthy-box {
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: rgba(62,207,110,0.07);
+    border-left: 3px solid var(--up-green);
+    border-radius: 3px;
+    font-size: 13px;
+    color: var(--up-green);
+  }
+
   .refresh-btn {
     background: var(--navy-lighter);
     color: var(--gold-light);
@@ -115,8 +149,7 @@
   }
   .refresh-btn:hover { background: var(--gold); color: var(--navy); }
   .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .empty-state { color: var(--text-muted); font-size: 14px; padding: 12px 0; }
-  .error-state { color: var(--down-red); font-size: 14px; padding: 12px 0; }
+
   .readonly-badge {
     display: inline-block;
     background: var(--navy-lighter);
@@ -127,6 +160,14 @@
     letter-spacing: 0.5px;
     text-transform: uppercase;
     margin-left: 10px;
+  }
+  .empty-state { color: var(--text-muted); font-size: 14px; padding: 12px 0; }
+  .error-state { color: var(--down-red); font-size: 14px; padding: 12px 0; }
+  .last-updated {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 12px;
   }
   footer {
     text-align: center;
@@ -145,60 +186,113 @@
 </header>
 
 <div class="container">
-
   <div class="card">
     <h2>System Status <span class="readonly-badge">Live</span></h2>
     <div id="statusList">
       <div class="empty-state">Checking systems...</div>
     </div>
-    <div style="margin-top: 16px; text-align: right;">
+    <div class="last-updated" id="lastUpdated"></div>
+    <div style="margin-top: 12px; text-align: right;">
       <button class="refresh-btn" id="refreshBtn" onclick="checkStatus()">Refresh Status</button>
     </div>
   </div>
-
 </div>
 
 <footer>Admin Hub — Group 3 &middot; Data view only, no editing permitted here</footer>
 
 <script>
   const HUB_BASE_URL = 'https://it-department-hub.onrender.com';
-
   const statusList = document.getElementById('statusList');
   const refreshBtn = document.getElementById('refreshBtn');
+  const lastUpdated = document.getElementById('lastUpdated');
+
+  // Track which rows are open so they stay open after a refresh
+  const openRows = new Set();
 
   async function checkStatus() {
     refreshBtn.disabled = true;
-    statusList.innerHTML = '<div class="empty-state">Checking systems...</div>';
     try {
       const res = await fetch(`${HUB_BASE_URL}/hub/status`);
       const data = await res.json();
       const entries = Object.entries(data);
+      const now = new Date();
+
       if (entries.length === 0) {
         statusList.innerHTML = '<div class="empty-state">No systems registered yet.</div>';
-      } else {
-        statusList.innerHTML = entries.map(([key, sys]) => `
-          <div class="system-row">
-            <div class="system-row-top">
-              <span class="system-name">${sys.name || key}</span>
-              <span>
+        return;
+      }
+
+      statusList.innerHTML = entries.map(([key, sys]) => {
+        const isUp = sys.status === 'up';
+        const isOpen = openRows.has(key);
+
+        const detailContent = isUp
+          ? `
+            <div class="detail-grid">
+              <div class="detail-label">Status</div>
+              <div class="detail-value green">&#10003; Healthy — system is running normally</div>
+              <div class="detail-label">Response Time</div>
+              <div class="detail-value">${sys.responseTimeMs} ms</div>
+              <div class="detail-label">Last Checked</div>
+              <div class="detail-value">${now.toLocaleTimeString()}</div>
+            </div>
+            <div class="healthy-box">&#10003; All systems operational. No issues detected.</div>
+          `
+          : `
+            <div class="detail-grid">
+              <div class="detail-label">Status</div>
+              <div class="detail-value red">&#9888; Down — system is not responding</div>
+              <div class="detail-label">Response Time</div>
+              <div class="detail-value">${sys.responseTimeMs !== undefined ? sys.responseTimeMs + ' ms' : '—'}</div>
+              <div class="detail-label">Last Checked</div>
+              <div class="detail-value">${now.toLocaleTimeString()}</div>
+            </div>
+            <div class="error-box">
+              <strong>Reason:</strong> ${sys.error || 'No response from system — it may be sleeping (Render free tier) or its database has paused (Supabase free tier).'}<br><br>
+              <strong>What to do:</strong><br>
+              &bull; If this just started: wait 30&ndash;60 seconds and refresh — Render services sleep after 15 min idle and take time to wake up.<br>
+              &bull; If it stays red: check if the system's Supabase project has auto-paused at supabase.com/dashboard and resume it.<br>
+              &bull; If still down: contact that group's maintainer.
+            </div>
+          `;
+
+        return `
+          <div class="system-row ${isOpen ? 'open' : ''}" data-key="${key}">
+            <div class="system-row-top" onclick="toggleRow('${key}')">
+              <div class="system-name-wrap">
+                <span class="chevron">&#9660;</span>
+                <span class="system-name">${sys.name || key}</span>
+              </div>
+              <div class="status-right">
                 <span class="status-pill ${sys.status}">
                   <span class="dot"></span>${sys.status}
                 </span>
-                ${sys.responseTimeMs !== undefined
-                  ? `<span class="response-time">${sys.responseTimeMs} ms</span>`
-                  : ''}
-              </span>
+                ${isUp ? `<span class="response-time">${sys.responseTimeMs} ms</span>` : ''}
+              </div>
             </div>
-            ${sys.status === 'down' && sys.error
-              ? `<div class="status-error-detail">&#9888; ${sys.error}</div>`
-              : ''}
+            <div class="system-detail">${detailContent}</div>
           </div>
-        `).join('');
-      }
+        `;
+      }).join('');
+
+      lastUpdated.textContent = `Last updated: ${now.toLocaleTimeString()}`;
+
     } catch (err) {
       statusList.innerHTML = `<div class="error-state">Could not reach the Admin Hub: ${err.message}</div>`;
     } finally {
       refreshBtn.disabled = false;
+    }
+  }
+
+  function toggleRow(key) {
+    const row = document.querySelector(`.system-row[data-key="${key}"]`);
+    if (!row) return;
+    if (openRows.has(key)) {
+      openRows.delete(key);
+      row.classList.remove('open');
+    } else {
+      openRows.add(key);
+      row.classList.add('open');
     }
   }
 
