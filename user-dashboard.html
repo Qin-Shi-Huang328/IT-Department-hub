@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IT Department — User Dashboard</title>
+<style>
+  :root {
+    --navy: #1b2a4a;
+    --navy-deep: #101b30;
+    --navy-panel: #162238;
+    --gold: #b8860b;
+    --gold-light: #d9a441;
+    --paper: #f7f5f0;
+    --paper-line: #e3ded2;
+    --ink: #232323;
+    --ink-soft: #6b6b6b;
+    --danger: #a13d3d;
+    --ok: #2e6b46;
+    --warn: #8a6a1f;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Georgia', 'Times New Roman', serif; background: var(--paper); color: var(--ink); }
+
+  /* ── Header ── */
+  header {
+    background: var(--navy); color: #fff; padding: 18px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 4px solid var(--gold);
+  }
+  .brand h1 { margin: 0; font-size: 20px; letter-spacing: 0.04em; font-weight: 600; }
+  .brand .sub { font-size: 11px; color: var(--gold-light); letter-spacing: 0.08em; text-transform: uppercase; }
+  .mode-toggle {
+    display: flex; gap: 0;
+    border: 1px solid rgba(255,255,255,0.2); border-radius: 3px; overflow: hidden;
+  }
+  .mode-btn {
+    background: transparent; color: rgba(255,255,255,0.6); border: none;
+    padding: 8px 18px; font-family: inherit; font-size: 13px; cursor: pointer;
+    letter-spacing: 0.03em; transition: background 0.15s;
+  }
+  .mode-btn.active { background: var(--gold); color: var(--navy-deep); font-weight: bold; }
+  .mode-btn:hover:not(.active) { background: rgba(255,255,255,0.08); color: #fff; }
+
+  /* ── Layout ── */
+  main { max-width: 1060px; margin: 0 auto; padding: 28px 20px 80px; }
+
+  /* ── Lookup bar ── */
+  .lookup-bar {
+    display: flex; gap: 10px; margin-bottom: 28px; align-items: center;
+  }
+  .lookup-bar input {
+    flex: 1; padding: 12px 14px; border: 1px solid var(--paper-line);
+    background: #fff; font-family: inherit; font-size: 15px; border-radius: 2px;
+    border-left: 4px solid var(--gold);
+  }
+  .lookup-bar input:focus { outline: 2px solid var(--gold); outline-offset: -1px; }
+  .btn-primary {
+    background: var(--navy); color: #fff; border: 1px solid var(--navy);
+    padding: 12px 22px; font-size: 14px; font-family: inherit; cursor: pointer;
+    border-radius: 2px; letter-spacing: 0.02em;
+  }
+  .btn-primary:hover { background: var(--navy-deep); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── Placeholder / loading ── */
+  .placeholder {
+    text-align: center; padding: 60px 20px; color: var(--ink-soft); border: 1px dashed var(--paper-line); background: #fff;
+  }
+  .placeholder .mark { font-size: 32px; color: var(--paper-line); margin-bottom: 10px; }
+  .loading-spinner { text-align: center; padding: 50px; color: var(--ink-soft); font-size: 15px; }
+
+  /* ── Profile banner ── */
+  .profile-banner {
+    background: var(--navy); color: #fff; padding: 20px 24px;
+    border-top: 4px solid var(--gold); margin-bottom: 20px;
+    display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  }
+  .profile-banner .pname { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+  .profile-banner .pmeta { font-size: 13px; color: var(--gold-light); letter-spacing: 0.04em; }
+  .badge {
+    display: inline-block; padding: 4px 12px; font-size: 11px; letter-spacing: 0.03em;
+    border-radius: 2px; text-transform: uppercase;
+  }
+  .badge.enrolled { background: #1e4d30; color: #7dcc9f; }
+  .badge.not-enrolled { background: #4d1e1e; color: #f09090; }
+  .badge.irregular { background: #4d3b0a; color: #e0c158; }
+  .profile-fields { display: flex; flex-wrap: wrap; gap: 16px 32px; margin-top: 10px; }
+  .pf-item { font-size: 13px; }
+  .pf-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(255,255,255,0.45); margin-bottom: 2px; }
+  .pf-value { color: rgba(255,255,255,0.9); }
+
+  /* ── Section grid ── */
+  .section-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+  }
+  @media (max-width: 700px) { .section-grid { grid-template-columns: 1fr; } }
+
+  /* ── Data card ── */
+  .data-card {
+    background: #fff; border: 1px solid var(--paper-line);
+  }
+  .data-card.full { grid-column: 1 / -1; }
+  .card-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; background: var(--navy); color: var(--gold-light);
+    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .card-head .sys-badge {
+    font-size: 10px; padding: 2px 8px; border-radius: 2px; letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .sys-badge.up { background: rgba(45,107,70,0.6); color: #7dcc9f; }
+  .sys-badge.down { background: rgba(161,61,61,0.5); color: #f09090; }
+  .sys-badge.pending { background: rgba(100,100,100,0.3); color: #aaa; }
+
+  .card-body { padding: 16px; }
+  .offline-notice {
+    padding: 18px; text-align: center; color: var(--ink-soft); font-size: 13px;
+    border: 1px dashed var(--paper-line); margin: 4px;
+  }
+  .offline-notice .off-icon { font-size: 20px; display: block; margin-bottom: 6px; color: var(--paper-line); }
+  .offline-notice strong { display: block; color: var(--ink); margin-bottom: 4px; }
+
+  /* ── Grades table ── */
+  .mini-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .mini-table th {
+    text-align: left; padding: 7px 10px; background: var(--paper); font-size: 10px;
+    letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft);
+    border-bottom: 1px solid var(--paper-line);
+  }
+  .mini-table td { padding: 8px 10px; border-bottom: 1px solid var(--paper-line); }
+  .mini-table tr:last-child td { border-bottom: none; }
+  .grade-num { font-family: 'Courier New', monospace; }
+  .rmk-passed { color: var(--ok); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .rmk-failed { color: var(--danger); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .rmk-inc { color: var(--warn); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  /* ── Finance summary ── */
+  .finance-summary {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 14px;
+  }
+  .fin-box { background: var(--paper); padding: 12px 14px; text-align: center; }
+  .fin-box .fin-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-soft); margin-bottom: 4px; }
+  .fin-box .fin-val { font-size: 18px; font-family: 'Courier New', monospace; color: var(--navy); }
+  .fin-box.balance .fin-val { color: var(--danger); }
+  .fin-box.paid .fin-val { color: var(--ok); }
+
+  /* ── LMS progress ── */
+  .course-item { padding: 10px 0; border-bottom: 1px solid var(--paper-line); }
+  .course-item:last-child { border-bottom: none; }
+  .course-name { font-size: 14px; margin-bottom: 4px; }
+  .course-meta { font-size: 12px; color: var(--ink-soft); margin-bottom: 6px; }
+  .progress-bar { height: 6px; background: var(--paper-line); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--gold); border-radius: 3px; transition: width 0.4s ease; }
+
+  /* ── Enrollment schedule ── */
+  .sched-item { padding: 9px 0; border-bottom: 1px solid var(--paper-line); font-size: 13px; }
+  .sched-item:last-child { border-bottom: none; }
+  .sched-subj { font-size: 14px; }
+  .sched-detail { color: var(--ink-soft); font-size: 12px; margin-top: 2px; }
+
+  /* ── IT Staff extra: student list ── */
+  .staff-hint { font-size: 13px; color: var(--ink-soft); margin-bottom: 14px; }
+  .student-list-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .student-list-table th {
+    text-align: left; padding: 8px 10px; background: var(--navy); color: var(--gold-light);
+    font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .student-list-table td { padding: 9px 10px; border-bottom: 1px solid var(--paper-line); }
+  .student-list-table tr:hover td { background: #fbf9f4; cursor: pointer; }
+  .id-mono { font-family: 'Courier New', monospace; color: var(--ink-soft); font-size: 12px; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--navy); color: #fff; padding: 11px 20px; font-size: 14px;
+    border-radius: 2px; border-left: 4px solid var(--gold); opacity: 0;
+    transition: all 0.22s ease; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── Section label ── */
+  .section-label {
+    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink-soft); margin: 0 0 10px; padding-bottom: 6px;
+    border-bottom: 1px solid var(--paper-line);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>IT Department — User Dashboard</h1>
+    <div class="sub">Group 3 &middot; Central Hub</div>
+  </div>
+  <div class="mode-toggle">
+    <button class="mode-btn active" id="btnStudent" onclick="setMode('student')">Student</button>
+    <button class="mode-btn" id="btnStaff" onclick="setMode('staff')">IT Staff</button>
+  </div>
+</header>
+
+<main>
+  <!-- Student mode -->
+  <div id="viewStudent">
+    <div class="lookup-bar">
+      <input type="text" id="studentIdInput" placeholder="Enter your Student Number (e.g. 2023-00456)…" onkeydown="if(event.key==='Enter')lookup()">
+      <button class="btn-primary" id="lookupBtn" onclick="lookup()">View My Records</button>
+    </div>
+    <div id="studentContent">
+      <div class="placeholder">
+        <div class="mark">—</div>
+        Enter your student number above to view your records across all connected systems.
+      </div>
+    </div>
+  </div>
+
+  <!-- Staff mode -->
+  <div id="viewStaff" style="display:none;">
+    <p class="staff-hint">Search for a student to view their full record across all connected systems, or browse the list below.</p>
+    <div class="lookup-bar">
+      <input type="text" id="staffSearchInput" placeholder="Search by name or student number…" oninput="staffSearch(this.value)">
+    </div>
+    <div id="staffContent">
+      <div class="loading-spinner">Loading student list…</div>
+    </div>
+    <div id="staffDetail" style="display:none; margin-top: 24px;">
+      <div class="section-label">Student Detail</div>
+      <div id="staffDetailContent"></div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const HUB = 'https://it-department-hub.onrender.com';
+  let currentMode = 'student';
+  let staffSearchTimer = null;
+
+  // ── Mode toggle ───────────────────────────────────────────────────────────
+  function setMode(mode) {
+    currentMode = mode;
+    document.getElementById('viewStudent').style.display = mode === 'student' ? '' : 'none';
+    document.getElementById('viewStaff').style.display = mode === 'staff' ? '' : 'none';
+    document.getElementById('btnStudent').classList.toggle('active', mode === 'student');
+    document.getElementById('btnStaff').classList.toggle('active', mode === 'staff');
+    if (mode === 'staff') loadStaffList('');
+  }
+
+  // ── Toast ─────────────────────────────────────────────────────────────────
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2400);
+  }
+
+  // ── Student lookup ────────────────────────────────────────────────────────
+  async function lookup() {
+    const id = document.getElementById('studentIdInput').value.trim();
+    if (!id) { showToast('Please enter your student number.'); return; }
+    const btn = document.getElementById('lookupBtn');
+    btn.disabled = true;
+    const content = document.getElementById('studentContent');
+    content.innerHTML = '<div class="loading-spinner">Fetching your records…</div>';
+    try {
+      const res = await fetch(`${HUB}/hub/students/${encodeURIComponent(id)}/full`);
+      if (res.status === 404) {
+        content.innerHTML = `<div class="placeholder"><div class="mark">—</div>No student found with number <strong>${id}</strong>. Check the number and try again.</div>`;
+        return;
+      }
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      content.innerHTML = renderDashboard(data);
+    } catch (err) {
+      content.innerHTML = `<div class="placeholder"><div class="mark">—</div>Could not load records: ${err.message}</div>`;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ── Staff: list + search ──────────────────────────────────────────────────
+  function staffSearch(q) {
+    clearTimeout(staffSearchTimer);
+    staffSearchTimer = setTimeout(() => loadStaffList(q), 300);
+  }
+
+  async function loadStaffList(search) {
+    const content = document.getElementById('staffContent');
+    content.innerHTML = '<div class="loading-spinner">Loading…</div>';
+    try {
+      const url = search
+        ? `${HUB}/hub/students/search?q=${encodeURIComponent(search)}`
+        : `${HUB}/hub/students/search?q=`;
+
+      // Fall back to full list if search is empty (no-q returns 400 from the search endpoint)
+      const fetchUrl = search
+        ? `${HUB}/hub/students/search?q=${encodeURIComponent(search)}`
+        : `${HUB}/hub/students/search?q=%20`; // space matches everything via ILIKE
+
+      const res = await fetch(fetchUrl);
+      const students = await res.json();
+      if (!Array.isArray(students) || students.length === 0) {
+        content.innerHTML = `<div class="placeholder"><div class="mark">—</div>${search ? `No students match "${search}".` : 'No students on file.'}</div>`;
+        return;
+      }
+      content.innerHTML = renderStaffList(students);
+    } catch (err) {
+      content.innerHTML = `<div class="placeholder"><div class="mark">—</div>Could not load student list: ${err.message}</div>`;
+    }
+  }
+
+  function renderStaffList(students) {
+    const rows = students.map(s => `
+      <tr onclick="staffLoadDetail('${s.student_id}')">
+        <td class="id-mono">${s.student_id}</td>
+        <td>${s.full_name}</td>
+        <td>${s.year_level ?? '—'}</td>
+        <td>${s.section ?? '—'}</td>
+        <td><span class="badge ${badgeClass(s.enrollment_status)}">${s.enrollment_status ?? 'unknown'}</span></td>
+      </tr>
+    `).join('');
+    return `
+      <table class="student-list-table">
+        <thead><tr><th>Student No.</th><th>Name</th><th>Year</th><th>Section</th><th>Status</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  }
+
+  async function staffLoadDetail(id) {
+    const detail = document.getElementById('staffDetail');
+    const content = document.getElementById('staffDetailContent');
+    detail.style.display = 'block';
+    content.innerHTML = '<div class="loading-spinner">Loading student detail…</div>';
+    detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    try {
+      const res = await fetch(`${HUB}/hub/students/${encodeURIComponent(id)}/full`);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      content.innerHTML = renderDashboard(data);
+    } catch (err) {
+      content.innerHTML = `<div class="placeholder"><div class="mark">—</div>Could not load: ${err.message}</div>`;
+    }
+  }
+
+  // ── Shared dashboard renderer ─────────────────────────────────────────────
+  function badgeClass(status) {
+    if (status === 'enrolled') return 'enrolled';
+    if (status === 'not-enrolled') return 'not-enrolled';
+    return 'irregular';
+  }
+
+  function renderDashboard(data) {
+    const p = data.profile;
+    return `
+      ${renderProfile(p)}
+      <div class="section-grid">
+        ${renderGrades(data.grades, data.gradesError)}
+        ${renderEnrollment(data.enrollment, data.enrollmentError)}
+        ${renderFinance(data.finance, data.financeError)}
+        ${renderLMS(data.lms, data.lmsError)}
+      </div>
+    `;
+  }
+
+  function renderProfile(p) {
+    return `
+      <div class="profile-banner">
+        <div>
+          <div class="pname">${p.full_name}</div>
+          <div class="pmeta">Student No. ${p.student_id}</div>
+          <div class="profile-fields">
+            <div class="pf-item"><div class="pf-label">Year Level</div><div class="pf-value">${p.year_level ?? '—'}</div></div>
+            <div class="pf-item"><div class="pf-label">Section</div><div class="pf-value">${p.section ?? '—'}</div></div>
+            <div class="pf-item"><div class="pf-label">Email</div><div class="pf-value">${p.email ?? '—'}</div></div>
+            <div class="pf-item"><div class="pf-label">Contact</div><div class="pf-value">${p.contact_number ?? '—'}</div></div>
+            <div class="pf-item"><div class="pf-label">Address</div><div class="pf-value">${p.address ?? '—'}</div></div>
+          </div>
+        </div>
+        <div style="padding-top:4px;">
+          <span class="badge ${badgeClass(p.enrollment_status)}">${p.enrollment_status ?? 'unknown'}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderGrades(grades, err) {
+    const head = `<div class="card-head"><span>Grades on File</span><span class="sys-badge up">Student Records ↑</span></div>`;
+    if (err && err !== 'null') {
+      return `<div class="data-card full">${head}<div class="card-body"><div class="offline-notice"><span class="off-icon">—</span><strong>Could not load grades</strong>${err}</div></div></div>`;
+    }
+    if (!grades || grades.length === 0) {
+      return `<div class="data-card full">${head}<div class="card-body"><div class="offline-notice"><span class="off-icon">—</span><strong>No grades on file yet.</strong>Grades will appear here once they are recorded by the Registrar.</div></div></div>`;
+    }
+    const rows = grades.map(g => `
+      <tr>
+        <td>${g.subject_code}</td>
+        <td>${g.subject_name}</td>
+        <td>${g.school_year ?? '—'}</td>
+        <td>${g.semester ?? '—'}</td>
+        <td class="grade-num">${g.grade ?? '—'}</td>
+        <td class="${g.remarks === 'passed' ? 'rmk-passed' : g.remarks === 'failed' ? 'rmk-failed' : g.remarks === 'incomplete' ? 'rmk-inc' : ''}">${g.remarks ?? '—'}</td>
+      </tr>
+    `).join('');
+    return `
+      <div class="data-card full">
+        ${head}
+        <div class="card-body">
+          <table class="mini-table">
+            <thead><tr><th>Code</th><th>Subject</th><th>S.Y.</th><th>Sem</th><th>Grade</th><th>Remarks</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderEnrollment(data, err) {
+    const sysUp = data !== null && err === null;
+    const badge = err === 'not-configured'
+      ? `<span class="sys-badge pending">Enrollment — Pending</span>`
+      : sysUp
+        ? `<span class="sys-badge up">Enrollment ↑</span>`
+        : `<span class="sys-badge down">Enrollment ↓</span>`;
+    const head = `<div class="card-head"><span>Enrolled Subjects</span>${badge}</div>`;
+
+    if (err === 'not-configured' || err) {
+      return `
+        <div class="data-card">
+          ${head}
+          <div class="card-body">
+            <div class="offline-notice">
+              <span class="off-icon">—</span>
+              <strong>${err === 'not-configured' ? 'System not connected yet' : 'System offline'}</strong>
+              ${err === 'not-configured'
+                ? 'The Enrollment System has not been registered with the Hub yet. This will be available once that group deploys their API.'
+                : err}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    if (!data || data.length === 0) {
+      return `<div class="data-card">${head}<div class="card-body"><div class="offline-notice"><span class="off-icon">—</span><strong>No subjects found.</strong>No enrolled subjects on file for this student.</div></div></div>`;
+    }
+
+    const items = data.map(s => `
+      <div class="sched-item">
+        <div class="sched-subj">${s.subject_code} — ${s.subject_name}</div>
+        <div class="sched-detail">${[s.schedule, s.room, s.instructor].filter(Boolean).join(' &middot; ')}</div>
+      </div>
+    `).join('');
+    return `<div class="data-card">${head}<div class="card-body">${items}</div></div>`;
+  }
+
+  function renderFinance(data, err) {
+    const sysUp = data !== null && err === null;
+    const badge = err === 'not-configured'
+      ? `<span class="sys-badge pending">Finance — Pending</span>`
+      : sysUp
+        ? `<span class="sys-badge up">Finance ↑</span>`
+        : `<span class="sys-badge down">Finance ↓</span>`;
+    const head = `<div class="card-head"><span>Finance / Payments</span>${badge}</div>`;
+
+    if (err === 'not-configured' || err) {
+      return `
+        <div class="data-card">
+          ${head}
+          <div class="card-body">
+            <div class="offline-notice">
+              <span class="off-icon">—</span>
+              <strong>${err === 'not-configured' ? 'System not connected yet' : 'System offline'}</strong>
+              ${err === 'not-configured'
+                ? 'The Finance System has not been registered with the Hub yet. This will be available once that group deploys their API.'
+                : err}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    const fmt = (n) => n !== undefined && n !== null ? `₱${Number(n).toLocaleString('en-PH', { minimumFractionDigits: 2 })}` : '—';
+
+    let txRows = '';
+    if (data.transactions && data.transactions.length > 0) {
+      txRows = `
+        <table class="mini-table" style="margin-top:10px;">
+          <thead><tr><th>Date</th><th>Description</th><th>Amount</th></tr></thead>
+          <tbody>
+            ${data.transactions.map(tx => `
+              <tr>
+                <td>${tx.date ?? '—'}</td>
+                <td>${tx.description ?? '—'}</td>
+                <td class="grade-num">${fmt(tx.amount)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    return `
+      <div class="data-card">
+        ${head}
+        <div class="card-body">
+          <div class="finance-summary">
+            <div class="fin-box"><div class="fin-label">Total Fees</div><div class="fin-val">${fmt(data.total_fees)}</div></div>
+            <div class="fin-box paid"><div class="fin-label">Total Paid</div><div class="fin-val">${fmt(data.total_paid)}</div></div>
+            <div class="fin-box balance"><div class="fin-label">Balance</div><div class="fin-val">${fmt(data.balance)}</div></div>
+          </div>
+          ${txRows}
+        </div>
+      </div>`;
+  }
+
+  function renderLMS(data, err) {
+    const sysUp = data !== null && err === null;
+    const badge = err === 'not-configured'
+      ? `<span class="sys-badge pending">LMS — Pending</span>`
+      : sysUp
+        ? `<span class="sys-badge up">LMS ↑</span>`
+        : `<span class="sys-badge down">LMS ↓</span>`;
+    const head = `<div class="card-head"><span>LMS / Courses</span>${badge}</div>`;
+
+    if (err === 'not-configured' || err) {
+      return `
+        <div class="data-card">
+          ${head}
+          <div class="card-body">
+            <div class="offline-notice">
+              <span class="off-icon">—</span>
+              <strong>${err === 'not-configured' ? 'System not connected yet' : 'System offline'}</strong>
+              ${err === 'not-configured'
+                ? 'The LMS has not been registered with the Hub yet. This will be available once that group deploys their API.'
+                : err}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    if (!data || data.length === 0) {
+      return `<div class="data-card">${head}<div class="card-body"><div class="offline-notice"><span class="off-icon">—</span><strong>No courses found.</strong>No LMS courses on file for this student.</div></div></div>`;
+    }
+
+    const items = data.map(c => `
+      <div class="course-item">
+        <div class="course-name">${c.course_code} — ${c.course_name}</div>
+        <div class="course-meta">${[c.instructor, c.lms_grade !== undefined && c.lms_grade !== null ? `Grade: ${c.lms_grade}` : null].filter(Boolean).join(' &middot; ')}</div>
+        ${c.progress_pct !== undefined && c.progress_pct !== null ? `
+          <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(100, c.progress_pct)}%"></div></div>
+          <div style="font-size:11px;color:var(--ink-soft);margin-top:3px;">${c.progress_pct}% complete</div>
+        ` : ''}
+      </div>
+    `).join('');
+
+    return `<div class="data-card">${head}<div class="card-body">${items}</div></div>`;
+  }
+</script>
+
+</body>
+</html>
