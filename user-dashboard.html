@@ -205,13 +205,13 @@
   <!-- Student mode -->
   <div id="viewStudent">
     <div class="lookup-bar">
-      <input type="text" id="studentIdInput" placeholder="Enter your Student Number (e.g. 2023-00456)…" onkeydown="if(event.key==='Enter')lookup()">
+      <input type="text" id="studentIdInput" placeholder="Enter your Student Number or Name (e.g. 2023-00456 or Lander)…" onkeydown="if(event.key==='Enter')lookup()">
       <button class="btn-primary" id="lookupBtn" onclick="lookup()">View My Records</button>
     </div>
     <div id="studentContent">
       <div class="placeholder">
         <div class="mark">—</div>
-        Enter your student number above to view your records across all connected systems.
+        Enter your student number or name above to view your records across all connected systems.
       </div>
     </div>
   </div>
@@ -257,27 +257,80 @@
     setTimeout(() => t.classList.remove('show'), 2400);
   }
 
-  // ── Student lookup ────────────────────────────────────────────────────────
+  // ── Student lookup (by student number OR name) ────────────────────────────
   async function lookup() {
-    const id = document.getElementById('studentIdInput').value.trim();
-    if (!id) { showToast('Please enter your student number.'); return; }
+    const q = document.getElementById('studentIdInput').value.trim();
+    if (!q) { showToast('Please enter your student number or name.'); return; }
     const btn = document.getElementById('lookupBtn');
     btn.disabled = true;
     const content = document.getElementById('studentContent');
-    content.innerHTML = '<div class="loading-spinner">Fetching your records…</div>';
+    content.innerHTML = '<div class="loading-spinner">Searching…</div>';
     try {
-      const res = await fetch(`${HUB}/hub/students/${encodeURIComponent(id)}/full`);
-      if (res.status === 404) {
-        content.innerHTML = `<div class="placeholder"><div class="mark">—</div>No student found with number <strong>${id}</strong>. Check the number and try again.</div>`;
+      // Full student number like 2026-00234 → load directly
+      if (/^\d{4}-\d{5}$/.test(q)) {
+        await loadStudentFull(q);
         return;
       }
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      content.innerHTML = renderDashboard(data);
+
+      // Otherwise search by name or partial number
+      const res = await fetch(`${HUB}/hub/students/search?q=${encodeURIComponent(q)}`);
+      const students = await res.json();
+
+      if (!Array.isArray(students) || students.length === 0) {
+        content.innerHTML = `<div class="placeholder"><div class="mark">—</div>No student found for <strong>${q.replace(/</g, '&lt;')}</strong>. Check the name or number and try again.</div>`;
+        return;
+      }
+
+      if (students.length === 1) {
+        document.getElementById('studentIdInput').value = students[0].student_id;
+        await loadStudentFull(students[0].student_id);
+        return;
+      }
+
+      // More than one match → show a pick list
+      const rows = students.map(s => `
+        <tr onclick="pickStudent('${s.student_id}')">
+          <td class="id-mono">${s.student_id}</td>
+          <td>${s.full_name}</td>
+          <td>${s.year_level ?? '—'}</td>
+          <td>${s.section ?? '—'}</td>
+          <td><span class="badge ${badgeClass(s.enrollment_status)}">${s.enrollment_status ?? 'unknown'}</span></td>
+        </tr>
+      `).join('');
+      content.innerHTML = `
+        <div class="section-label">${students.length} students found — click one</div>
+        <table class="student-list-table">
+          <thead><tr><th>Student No.</th><th>Name</th><th>Year</th><th>Section</th><th>Status</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
     } catch (err) {
       content.innerHTML = `<div class="placeholder"><div class="mark">—</div>Could not load records: ${err.message}</div>`;
     } finally {
       btn.disabled = false;
+    }
+  }
+
+  async function loadStudentFull(id) {
+    const content = document.getElementById('studentContent');
+    content.innerHTML = '<div class="loading-spinner">Fetching records…</div>';
+    const res = await fetch(`${HUB}/hub/students/${encodeURIComponent(id)}/full`);
+    if (res.status === 404) {
+      content.innerHTML = `<div class="placeholder"><div class="mark">—</div>No student found with number <strong>${id}</strong>. Check the number and try again.</div>`;
+      return;
+    }
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    content.innerHTML = renderDashboard(data);
+  }
+
+  async function pickStudent(id) {
+    document.getElementById('studentIdInput').value = id;
+    try {
+      await loadStudentFull(id);
+    } catch (err) {
+      document.getElementById('studentContent').innerHTML =
+        `<div class="placeholder"><div class="mark">—</div>Could not load records: ${err.message}</div>`;
     }
   }
 
@@ -291,14 +344,10 @@
     const content = document.getElementById('staffContent');
     content.innerHTML = '<div class="loading-spinner">Loading…</div>';
     try {
-      const url = search
-        ? `${HUB}/hub/students/search?q=${encodeURIComponent(search)}`
-        : `${HUB}/hub/students/search?q=`;
-
-      // Fall back to full list if search is empty (no-q returns 400 from the search endpoint)
+      // Empty search uses a space, which matches everything via ILIKE
       const fetchUrl = search
         ? `${HUB}/hub/students/search?q=${encodeURIComponent(search)}`
-        : `${HUB}/hub/students/search?q=%20`; // space matches everything via ILIKE
+        : `${HUB}/hub/students/search?q=%20`;
 
       const res = await fetch(fetchUrl);
       const students = await res.json();
