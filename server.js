@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const crypto = require('crypto');
 const fetch = require('node-fetch');
 
 const app = express();
@@ -26,8 +27,55 @@ const REGISTRY = {
   },
 };
 
+// ── Login token check (token is made by Student Records /api/auth/login) ─────
+function verifyToken(token) {
+  if (!token || !process.env.AUTH_SECRET) return null;
+  const parts = token.split('.');
+  if (parts.length !== 2) return null;
+  const [payload, sig] = parts;
+  const expected = crypto.createHmac('sha256', process.env.AUTH_SECRET).update(payload).digest('base64url');
+  const a = Buffer.from(sig);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+  try {
+    const data = JSON.parse(Buffer.from(payload, 'base64url').toString());
+    if (!data.sid || !data.exp || Date.now() > data.exp) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+// Only the logged-in student can open their own record
+function requireOwnRecord(req, res, next) {
+  const auth = req.header('authorization') || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+  const data = verifyToken(token);
+  if (!data) return res.status(401).json({ error: 'Please log in again' });
+  if (data.sid !== req.params.id) return res.status(403).json({ error: 'You can only view your own record' });
+  next();
+}
+
 app.get('/', (req, res) => {
   res.json({ message: 'Central Hub is running', systems: Object.keys(REGISTRY) });
+});
+
+// ── Student login (forwards to Student Records) ──────────────────────────────
+app.post('/hub/login', async (req, res) => {
+  try {
+    const r = await fetch(`${REGISTRY['student-records'].baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        student_id: (req.body || {}).student_id,
+        password: (req.body || {}).password
+      })
+    });
+    const data = await r.json();
+    res.status(r.status).json(data);
+  } catch (err) {
+    res.status(502).json({ error: 'Failed to reach Student Records', details: err.message });
+  }
 });
 
 // ── Health check ─────────────────────────────────────────────────────────────
@@ -131,9 +179,9 @@ app.get('/hub/students/:id/lms', async (req, res) => {
   }
 });
 
-// ── Full bundle: profile + all subsystems in one call ────────────────────────
-// The dashboard calls this once to populate everything.
-app.get('/hub/students/:id/full', async (req, res) => {
+// ── Full bundle: profile + all subsystems in one call (LOGIN REQUIRED) ───────
+// The user dashboard calls this once to populate everything.
+app.get('/hub/students/:id/full', requireOwnRecord, async (req, res) => {
   const id = req.params.id;
   const srBase = REGISTRY['student-records'].baseUrl;
 
