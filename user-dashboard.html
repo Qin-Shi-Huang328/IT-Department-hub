@@ -30,31 +30,44 @@
   }
   .brand h1 { margin: 0; font-size: 20px; letter-spacing: 0.04em; font-weight: 600; }
   .brand .sub { font-size: 11px; color: var(--gold-light); letter-spacing: 0.08em; text-transform: uppercase; }
-  .mode-toggle {
-    display: flex; gap: 0;
-    border: 1px solid rgba(255,255,255,0.2); border-radius: 3px; overflow: hidden;
-  }
-  .mode-btn {
-    background: transparent; color: rgba(255,255,255,0.6); border: none;
+  .signout-btn {
+    background: transparent; color: rgba(255,255,255,0.8);
+    border: 1px solid rgba(255,255,255,0.3); border-radius: 3px;
     padding: 8px 18px; font-family: inherit; font-size: 13px; cursor: pointer;
-    letter-spacing: 0.03em; transition: background 0.15s;
+    letter-spacing: 0.03em; display: none;
   }
-  .mode-btn.active { background: var(--gold); color: var(--navy-deep); font-weight: bold; }
-  .mode-btn:hover:not(.active) { background: rgba(255,255,255,0.08); color: #fff; }
+  .signout-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
 
   /* ── Layout ── */
   main { max-width: 1060px; margin: 0 auto; padding: 28px 20px 80px; }
 
-  /* ── Lookup bar ── */
-  .lookup-bar {
-    display: flex; gap: 10px; margin-bottom: 28px; align-items: center;
+  /* ── Login box ── */
+  .login-wrap { display: flex; justify-content: center; padding: 40px 0; }
+  .login-box {
+    background: #fff; border: 1px solid var(--paper-line);
+    border-top: 4px solid var(--gold);
+    padding: 30px 32px; width: 100%; max-width: 400px;
   }
-  .lookup-bar input {
-    flex: 1; padding: 12px 14px; border: 1px solid var(--paper-line);
+  .login-box h2 { margin: 0 0 4px; font-size: 20px; color: var(--navy); }
+  .login-box p { margin: 0 0 22px; font-size: 13px; color: var(--ink-soft); }
+  .login-field { margin-bottom: 14px; }
+  .login-field label {
+    display: block; font-size: 10px; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--ink-soft); margin-bottom: 5px;
+  }
+  .login-field input {
+    width: 100%; padding: 11px 12px; border: 1px solid var(--paper-line);
     background: #fff; font-family: inherit; font-size: 15px; border-radius: 2px;
     border-left: 4px solid var(--gold);
   }
-  .lookup-bar input:focus { outline: 2px solid var(--gold); outline-offset: -1px; }
+  .login-field input:focus { outline: 2px solid var(--gold); outline-offset: -1px; }
+  .login-box .btn-primary { width: 100%; margin-top: 6px; }
+  .login-error {
+    display: none; margin-top: 14px; padding: 9px 12px; font-size: 13px;
+    color: var(--danger); background: rgba(161,61,61,0.08); border-left: 3px solid var(--danger);
+  }
+  .login-error.show { display: block; }
+
   .btn-primary {
     background: var(--navy); color: #fff; border: 1px solid var(--navy);
     padding: 12px 22px; font-size: 14px; font-family: inherit; cursor: pointer;
@@ -160,17 +173,6 @@
   .sched-subj { font-size: 14px; }
   .sched-detail { color: var(--ink-soft); font-size: 12px; margin-top: 2px; }
 
-  /* ── IT Staff extra: student list ── */
-  .staff-hint { font-size: 13px; color: var(--ink-soft); margin-bottom: 14px; }
-  .student-list-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .student-list-table th {
-    text-align: left; padding: 8px 10px; background: var(--navy); color: var(--gold-light);
-    font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
-  }
-  .student-list-table td { padding: 9px 10px; border-bottom: 1px solid var(--paper-line); }
-  .student-list-table tr:hover td { background: #fbf9f4; cursor: pointer; }
-  .id-mono { font-family: 'Courier New', monospace; color: var(--ink-soft); font-size: 12px; }
-
   /* ── Toast ── */
   .toast {
     position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
@@ -179,13 +181,6 @@
     transition: all 0.22s ease; pointer-events: none;
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-  /* ── Section label ── */
-  .section-label {
-    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--ink-soft); margin: 0 0 10px; padding-bottom: 6px;
-    border-bottom: 1px solid var(--paper-line);
-  }
 </style>
 </head>
 <body>
@@ -195,39 +190,32 @@
     <h1>IT Department — User Dashboard</h1>
     <div class="sub">Group 3 &middot; Central Hub</div>
   </div>
-  <div class="mode-toggle">
-    <button class="mode-btn active" id="btnStudent" onclick="setMode('student')">Student</button>
-    <button class="mode-btn" id="btnStaff" onclick="setMode('staff')">IT Staff</button>
-  </div>
+  <button class="signout-btn" id="signoutBtn" onclick="doLogout()">Sign Out</button>
 </header>
 
 <main>
-  <!-- Student mode -->
-  <div id="viewStudent">
-    <div class="lookup-bar">
-      <input type="text" id="studentIdInput" placeholder="Enter your Student Number or Name (e.g. 2023-00456 or Lander)…" onkeydown="if(event.key==='Enter')lookup()">
-      <button class="btn-primary" id="lookupBtn" onclick="lookup()">View My Records</button>
-    </div>
-    <div id="studentContent">
-      <div class="placeholder">
-        <div class="mark">—</div>
-        Enter your student number or name above to view your records across all connected systems.
+  <!-- Login screen -->
+  <div id="loginView" class="login-wrap">
+    <div class="login-box">
+      <h2>Student Login</h2>
+      <p>Sign in to view your records across all connected systems.</p>
+      <div class="login-field">
+        <label>Student Number</label>
+        <input type="text" id="loginId" placeholder="e.g. 2026-00234" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
       </div>
+      <div class="login-field">
+        <label>Password</label>
+        <input type="password" id="loginPass" placeholder="Enter your password" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="btn-primary" id="loginBtn" onclick="doLogin()">Sign In</button>
+      <div class="login-error" id="loginError"></div>
     </div>
   </div>
 
-  <!-- Staff mode -->
-  <div id="viewStaff" style="display:none;">
-    <p class="staff-hint">Search for a student to view their full record across all connected systems, or browse the list below.</p>
-    <div class="lookup-bar">
-      <input type="text" id="staffSearchInput" placeholder="Search by name or student number…" oninput="staffSearch(this.value)">
-    </div>
-    <div id="staffContent">
-      <div class="loading-spinner">Loading student list…</div>
-    </div>
-    <div id="staffDetail" style="display:none; margin-top: 24px;">
-      <div class="section-label">Student Detail</div>
-      <div id="staffDetailContent"></div>
+  <!-- Dashboard (after login) -->
+  <div id="dashView" style="display:none;">
+    <div id="studentContent">
+      <div class="loading-spinner">Fetching your records…</div>
     </div>
   </div>
 </main>
@@ -236,18 +224,6 @@
 
 <script>
   const HUB = 'https://it-department-hub.onrender.com';
-  let currentMode = 'student';
-  let staffSearchTimer = null;
-
-  // ── Mode toggle ───────────────────────────────────────────────────────────
-  function setMode(mode) {
-    currentMode = mode;
-    document.getElementById('viewStudent').style.display = mode === 'student' ? '' : 'none';
-    document.getElementById('viewStaff').style.display = mode === 'staff' ? '' : 'none';
-    document.getElementById('btnStudent').classList.toggle('active', mode === 'student');
-    document.getElementById('btnStaff').classList.toggle('active', mode === 'staff');
-    if (mode === 'staff') loadStaffList('');
-  }
 
   // ── Toast ─────────────────────────────────────────────────────────────────
   function showToast(msg) {
@@ -257,141 +233,93 @@
     setTimeout(() => t.classList.remove('show'), 2400);
   }
 
-  // ── Student lookup (by student number OR name) ────────────────────────────
-  async function lookup() {
-    const q = document.getElementById('studentIdInput').value.trim();
-    if (!q) { showToast('Please enter your student number or name.'); return; }
-    const btn = document.getElementById('lookupBtn');
+  // ── Login / logout ────────────────────────────────────────────────────────
+  function showLogin(message) {
+    document.getElementById('dashView').style.display = 'none';
+    document.getElementById('loginView').style.display = 'flex';
+    document.getElementById('signoutBtn').style.display = 'none';
+    const err = document.getElementById('loginError');
+    if (message) {
+      err.textContent = message;
+      err.classList.add('show');
+    } else {
+      err.classList.remove('show');
+    }
+  }
+
+  function showDashboard() {
+    document.getElementById('loginView').style.display = 'none';
+    document.getElementById('dashView').style.display = 'block';
+    document.getElementById('signoutBtn').style.display = 'inline-block';
+  }
+
+  async function doLogin() {
+    const id = document.getElementById('loginId').value.trim();
+    const pw = document.getElementById('loginPass').value;
+    if (!id || !pw) { showToast('Enter your student number and password.'); return; }
+
+    const btn = document.getElementById('loginBtn');
     btn.disabled = true;
-    const content = document.getElementById('studentContent');
-    content.innerHTML = '<div class="loading-spinner">Searching…</div>';
+    btn.textContent = 'Signing in…';
     try {
-      // Full student number like 2026-00234 → load directly
-      if (/^\d{4}-\d{5}$/.test(q)) {
-        await loadStudentFull(q);
+      const res = await fetch(`${HUB}/hub/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ student_id: id, password: pw })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showLogin(data.error || 'Login failed. Try again.');
         return;
       }
-
-      // Otherwise search by name or partial number
-      const res = await fetch(`${HUB}/hub/students/search?q=${encodeURIComponent(q)}`);
-      const students = await res.json();
-
-      if (!Array.isArray(students) || students.length === 0) {
-        content.innerHTML = `<div class="placeholder"><div class="mark">—</div>No student found for <strong>${q.replace(/</g, '&lt;')}</strong>. Check the name or number and try again.</div>`;
-        return;
-      }
-
-      if (students.length === 1) {
-        document.getElementById('studentIdInput').value = students[0].student_id;
-        await loadStudentFull(students[0].student_id);
-        return;
-      }
-
-      // More than one match → show a pick list
-      const rows = students.map(s => `
-        <tr onclick="pickStudent('${s.student_id}')">
-          <td class="id-mono">${s.student_id}</td>
-          <td>${s.full_name}</td>
-          <td>${s.year_level ?? '—'}</td>
-          <td>${s.section ?? '—'}</td>
-          <td><span class="badge ${badgeClass(s.enrollment_status)}">${s.enrollment_status ?? 'unknown'}</span></td>
-        </tr>
-      `).join('');
-      content.innerHTML = `
-        <div class="section-label">${students.length} students found — click one</div>
-        <table class="student-list-table">
-          <thead><tr><th>Student No.</th><th>Name</th><th>Year</th><th>Section</th><th>Status</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      `;
+      sessionStorage.setItem('hubToken', data.token);
+      sessionStorage.setItem('hubStudent', data.student_id);
+      document.getElementById('loginPass').value = '';
+      showDashboard();
+      await loadMyRecords();
     } catch (err) {
-      content.innerHTML = `<div class="placeholder"><div class="mark">—</div>Could not load records: ${err.message}</div>`;
+      showLogin('Could not reach the server. Wait a moment and try again.');
     } finally {
       btn.disabled = false;
+      btn.textContent = 'Sign In';
     }
   }
 
-  async function loadStudentFull(id) {
+  function doLogout() {
+    sessionStorage.removeItem('hubToken');
+    sessionStorage.removeItem('hubStudent');
+    document.getElementById('loginId').value = '';
+    document.getElementById('loginPass').value = '';
+    document.getElementById('studentContent').innerHTML = '';
+    showLogin('');
+  }
+
+  // ── Load the logged-in student's own record ───────────────────────────────
+  async function loadMyRecords() {
+    const token = sessionStorage.getItem('hubToken');
+    const id = sessionStorage.getItem('hubStudent');
     const content = document.getElementById('studentContent');
-    content.innerHTML = '<div class="loading-spinner">Fetching records…</div>';
-    const res = await fetch(`${HUB}/hub/students/${encodeURIComponent(id)}/full`);
-    if (res.status === 404) {
-      content.innerHTML = `<div class="placeholder"><div class="mark">—</div>No student found with number <strong>${id}</strong>. Check the number and try again.</div>`;
-      return;
-    }
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    content.innerHTML = renderDashboard(data);
-  }
+    if (!token || !id) { showLogin(''); return; }
 
-  async function pickStudent(id) {
-    document.getElementById('studentIdInput').value = id;
+    content.innerHTML = '<div class="loading-spinner">Fetching your records…</div>';
     try {
-      await loadStudentFull(id);
-    } catch (err) {
-      document.getElementById('studentContent').innerHTML =
-        `<div class="placeholder"><div class="mark">—</div>Could not load records: ${err.message}</div>`;
-    }
-  }
-
-  // ── Staff: list + search ──────────────────────────────────────────────────
-  function staffSearch(q) {
-    clearTimeout(staffSearchTimer);
-    staffSearchTimer = setTimeout(() => loadStaffList(q), 300);
-  }
-
-  async function loadStaffList(search) {
-    const content = document.getElementById('staffContent');
-    content.innerHTML = '<div class="loading-spinner">Loading…</div>';
-    try {
-      // Empty search uses a space, which matches everything via ILIKE
-      const fetchUrl = search
-        ? `${HUB}/hub/students/search?q=${encodeURIComponent(search)}`
-        : `${HUB}/hub/students/search?q=%20`;
-
-      const res = await fetch(fetchUrl);
-      const students = await res.json();
-      if (!Array.isArray(students) || students.length === 0) {
-        content.innerHTML = `<div class="placeholder"><div class="mark">—</div>${search ? `No students match "${search}".` : 'No students on file.'}</div>`;
+      const res = await fetch(`${HUB}/hub/students/${encodeURIComponent(id)}/full`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.status === 401 || res.status === 403) {
+        doLogout();
+        showLogin('Your session ended. Please sign in again.');
         return;
       }
-      content.innerHTML = renderStaffList(students);
-    } catch (err) {
-      content.innerHTML = `<div class="placeholder"><div class="mark">—</div>Could not load student list: ${err.message}</div>`;
-    }
-  }
-
-  function renderStaffList(students) {
-    const rows = students.map(s => `
-      <tr onclick="staffLoadDetail('${s.student_id}')">
-        <td class="id-mono">${s.student_id}</td>
-        <td>${s.full_name}</td>
-        <td>${s.year_level ?? '—'}</td>
-        <td>${s.section ?? '—'}</td>
-        <td><span class="badge ${badgeClass(s.enrollment_status)}">${s.enrollment_status ?? 'unknown'}</span></td>
-      </tr>
-    `).join('');
-    return `
-      <table class="student-list-table">
-        <thead><tr><th>Student No.</th><th>Name</th><th>Year</th><th>Section</th><th>Status</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    `;
-  }
-
-  async function staffLoadDetail(id) {
-    const detail = document.getElementById('staffDetail');
-    const content = document.getElementById('staffDetailContent');
-    detail.style.display = 'block';
-    content.innerHTML = '<div class="loading-spinner">Loading student detail…</div>';
-    detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    try {
-      const res = await fetch(`${HUB}/hub/students/${encodeURIComponent(id)}/full`);
+      if (res.status === 404) {
+        content.innerHTML = `<div class="placeholder"><div class="mark">—</div>No record found for <strong>${id}</strong>.</div>`;
+        return;
+      }
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       content.innerHTML = renderDashboard(data);
     } catch (err) {
-      content.innerHTML = `<div class="placeholder"><div class="mark">—</div>Could not load: ${err.message}</div>`;
+      content.innerHTML = `<div class="placeholder"><div class="mark">—</div>Could not load records: ${err.message}</div>`;
     }
   }
 
@@ -605,6 +533,12 @@
     `).join('');
 
     return `<div class="data-card">${head}<div class="card-body">${items}</div></div>`;
+  }
+
+  // ── On page load: if still signed in, go straight to the dashboard ────────
+  if (sessionStorage.getItem('hubToken') && sessionStorage.getItem('hubStudent')) {
+    showDashboard();
+    loadMyRecords();
   }
 </script>
 
