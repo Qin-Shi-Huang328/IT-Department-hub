@@ -56,6 +56,8 @@ function requireOwnRecord(req, res, next) {
   next();
 }
 
+app.get('/dashboard', (req, res) => res.sendFile(require('path').join(__dirname, 'user-dashboard.html')));
+
 app.get('/', (req, res) => {
   res.json({ message: 'Central Hub is running', systems: Object.keys(REGISTRY) });
 });
