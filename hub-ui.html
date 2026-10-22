@@ -86,6 +86,7 @@
   }
   .status-pill.up { background: rgba(62,207,110,0.15); color: var(--up-green); }
   .status-pill.down { background: rgba(224,82,79,0.15); color: var(--down-red); }
+  .status-pill.not-configured { background: rgba(154,168,189,0.15); color: var(--text-muted); }
   .status-pill.checking { background: rgba(154,168,189,0.15); color: var(--text-muted); }
   .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
   .response-time { font-size: 12px; color: var(--text-muted); }
@@ -114,6 +115,7 @@
   .detail-value { font-size: 14px; color: var(--cream); }
   .detail-value.green { color: var(--up-green); }
   .detail-value.red { color: var(--down-red); }
+  .detail-value.muted { color: var(--text-muted); }
 
   .error-box {
     margin-top: 10px;
@@ -134,6 +136,16 @@
     border-radius: 3px;
     font-size: 13px;
     color: var(--up-green);
+  }
+  .pending-box {
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: rgba(154,168,189,0.07);
+    border-left: 3px solid var(--text-muted);
+    border-radius: 3px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
   }
 
   .refresh-btn {
@@ -224,10 +236,12 @@
 
       statusList.innerHTML = entries.map(([key, sys]) => {
         const isUp = sys.status === 'up';
+        const isPending = sys.status === 'not-configured';
         const isOpen = openRows.has(key);
 
-        const detailContent = isUp
-          ? `
+        let detailContent;
+        if (isUp) {
+          detailContent = `
             <div class="detail-grid">
               <div class="detail-label">Status</div>
               <div class="detail-value green">&#10003; Healthy — system is running normally</div>
@@ -237,8 +251,24 @@
               <div class="detail-value">${now.toLocaleTimeString()}</div>
             </div>
             <div class="healthy-box">&#10003; All systems operational. No issues detected.</div>
-          `
-          : `
+          `;
+        } else if (isPending) {
+          detailContent = `
+            <div class="detail-grid">
+              <div class="detail-label">Status</div>
+              <div class="detail-value muted">Waiting for this group to connect</div>
+              <div class="detail-label">Response Time</div>
+              <div class="detail-value muted">&mdash;</div>
+              <div class="detail-label">Last Checked</div>
+              <div class="detail-value">${now.toLocaleTimeString()}</div>
+            </div>
+            <div class="pending-box">
+              This group has not given Group 3 its server address yet, so nothing is broken.
+              Once the address is registered in the Hub, this row will start showing UP or DOWN.
+            </div>
+          `;
+        } else {
+          detailContent = `
             <div class="detail-grid">
               <div class="detail-label">Status</div>
               <div class="detail-value red">&#9888; Down — system is not responding</div>
@@ -255,6 +285,7 @@
               &bull; If still down: contact that group's maintainer.
             </div>
           `;
+        }
 
         return `
           <div class="system-row ${isOpen ? 'open' : ''}" data-key="${key}">

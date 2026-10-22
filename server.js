@@ -22,8 +22,12 @@ const REGISTRY = {
     baseUrl: '' // Fill in once that group deploys
   },
   'lms': {
-    name: 'LMS / Web Portal',
+    name: 'LMS',
     baseUrl: '' // Fill in once that group deploys
+  },
+  'web-portal': {
+    name: 'Web Portal',
+    baseUrl: '' // Fill in once the Portal has a public address
   },
 };
 
