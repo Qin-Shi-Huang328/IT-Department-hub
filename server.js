@@ -27,7 +27,7 @@ const REGISTRY = {
   },
   'web-portal': {
     name: 'Web Portal',
-    baseUrl: '' // Fill in once the Portal has a public address
+    baseUrl: 'https://clocks-stretch-declared-charlie.trycloudflare.com'
   },
 };
 
