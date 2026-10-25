@@ -5,217 +5,295 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IT Department — User Dashboard</title>
 <style>
-  :root {
-    --navy: #1b2a4a;
-    --navy-deep: #101b30;
-    --navy-panel: #162238;
-    --gold: #b8860b;
-    --gold-light: #d9a441;
-    --paper: #f7f5f0;
-    --paper-line: #e3ded2;
-    --ink: #232323;
-    --ink-soft: #6b6b6b;
-    --danger: #a13d3d;
-    --ok: #2e6b46;
-    --warn: #8a6a1f;
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; font-family: 'Georgia', 'Times New Roman', serif; background: var(--paper); color: var(--ink); }
+:root {
+  --navy: #1b2a4a;
+  --navy-deep: #101b30;
+  --navy-panel: #162238;
+  --gold: #b8860b;
+  --gold-light: #d9a441;
+  --paper: #f7f5f0;
+  --paper-line: #e3ded2;
+  --ink: #232323;
+  --ink-soft: #6b6b6b;
+  --danger: #a13d3d;
+  --ok: #2e6b46;
+  --warn: #8a6a1f;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Georgia', 'Times New Roman', serif; background: var(--paper); color: var(--ink); }
 
-  /* ── Header ── */
-  header {
-    background: var(--navy); color: #fff; padding: 18px 32px;
-    display: flex; align-items: center; justify-content: space-between;
-    border-bottom: 4px solid var(--gold);
-  }
-  .brand h1 { margin: 0; font-size: 20px; letter-spacing: 0.04em; font-weight: 600; }
-  .brand .sub { font-size: 11px; color: var(--gold-light); letter-spacing: 0.08em; text-transform: uppercase; }
-  .signout-btn {
-    background: transparent; color: rgba(255,255,255,0.8);
-    border: 1px solid rgba(255,255,255,0.3); border-radius: 3px;
-    padding: 8px 18px; font-family: inherit; font-size: 13px; cursor: pointer;
-    letter-spacing: 0.03em; display: none;
-  }
-  .signout-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+header {
+  background: var(--navy); color: #fff; padding: 18px 32px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 4px solid var(--gold);
+}
+.brand h1 { margin: 0; font-size: 20px; letter-spacing: 0.04em; font-weight: 600; }
+.brand .sub { font-size: 11px; color: var(--gold-light); letter-spacing: 0.08em; text-transform: uppercase; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.role-badge {
+  font-size: 11px; padding: 4px 12px; border-radius: 2px;
+  letter-spacing: 0.04em; text-transform: uppercase; display: none;
+}
+.role-badge.student { background: rgba(184,134,11,0.2); color: var(--gold-light); }
+.role-badge.employee { background: rgba(46,107,70,0.3); color: #7dcc9f; }
+.signout-btn {
+  background: transparent; color: rgba(255,255,255,0.8);
+  border: 1px solid rgba(255,255,255,0.3); border-radius: 3px;
+  padding: 8px 18px; font-family: inherit; font-size: 13px; cursor: pointer;
+  letter-spacing: 0.03em; display: none;
+}
+.signout-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
 
-  /* ── Layout ── */
-  main { max-width: 1060px; margin: 0 auto; padding: 28px 20px 80px; }
+main { max-width: 1060px; margin: 0 auto; padding: 28px 20px 80px; }
 
-  /* ── Login box ── */
-  .login-wrap { display: flex; justify-content: center; padding: 40px 0; }
-  .login-box {
-    background: #fff; border: 1px solid var(--paper-line);
-    border-top: 4px solid var(--gold);
-    padding: 30px 32px; width: 100%; max-width: 400px;
-  }
-  .login-box h2 { margin: 0 0 4px; font-size: 20px; color: var(--navy); }
-  .login-box p { margin: 0 0 22px; font-size: 13px; color: var(--ink-soft); }
-  .login-field { margin-bottom: 14px; }
-  .login-field label {
-    display: block; font-size: 10px; text-transform: uppercase;
-    letter-spacing: 0.06em; color: var(--ink-soft); margin-bottom: 5px;
-  }
-  .login-field input {
-    width: 100%; padding: 11px 12px; border: 1px solid var(--paper-line);
-    background: #fff; font-family: inherit; font-size: 15px; border-radius: 2px;
-    border-left: 4px solid var(--gold);
-  }
-  .login-field input:focus { outline: 2px solid var(--gold); outline-offset: -1px; }
-  .login-box .btn-primary { width: 100%; margin-top: 6px; }
-  .login-error {
-    display: none; margin-top: 14px; padding: 9px 12px; font-size: 13px;
-    color: var(--danger); background: rgba(161,61,61,0.08); border-left: 3px solid var(--danger);
-  }
-  .login-error.show { display: block; }
+/* Login */
+.login-wrap { display: flex; justify-content: center; padding: 40px 0; }
+.login-box {
+  background: #fff; border: 1px solid var(--paper-line);
+  border-top: 4px solid var(--gold);
+  padding: 30px 32px; width: 100%; max-width: 420px;
+}
+.login-box h2 { margin: 0 0 4px; font-size: 20px; color: var(--navy); }
+.login-box p { margin: 0 0 18px; font-size: 13px; color: var(--ink-soft); }
 
-  .btn-primary {
-    background: var(--navy); color: #fff; border: 1px solid var(--navy);
-    padding: 12px 22px; font-size: 14px; font-family: inherit; cursor: pointer;
-    border-radius: 2px; letter-spacing: 0.02em;
-  }
-  .btn-primary:hover { background: var(--navy-deep); }
-  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+/* Toggle tabs */
+.login-tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid var(--paper-line); }
+.login-tab {
+  flex: 1; padding: 10px; text-align: center; cursor: pointer;
+  font-size: 13px; color: var(--ink-soft); border-bottom: 3px solid transparent;
+  margin-bottom: -2px; font-family: inherit; background: none; border-left: none; border-right: none; border-top: none;
+}
+.login-tab.active { color: var(--navy); border-bottom: 3px solid var(--gold); font-weight: bold; }
 
-  /* ── Placeholder / loading ── */
-  .placeholder {
-    text-align: center; padding: 60px 20px; color: var(--ink-soft); border: 1px dashed var(--paper-line); background: #fff;
-  }
-  .placeholder .mark { font-size: 32px; color: var(--paper-line); margin-bottom: 10px; }
-  .loading-spinner { text-align: center; padding: 50px; color: var(--ink-soft); font-size: 15px; }
+.login-field { margin-bottom: 14px; }
+.login-field label {
+  display: block; font-size: 10px; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--ink-soft); margin-bottom: 5px;
+}
+.login-field input {
+  width: 100%; padding: 11px 12px; border: 1px solid var(--paper-line);
+  background: #fff; font-family: inherit; font-size: 15px; border-radius: 2px;
+  border-left: 4px solid var(--gold);
+}
+.login-field input:focus { outline: 2px solid var(--gold); outline-offset: -1px; }
+.login-box .btn-primary { width: 100%; margin-top: 6px; }
+.login-error {
+  display: none; margin-top: 14px; padding: 9px 12px; font-size: 13px;
+  color: var(--danger); background: rgba(161,61,61,0.08); border-left: 3px solid var(--danger);
+}
+.login-error.show { display: block; }
+.btn-primary {
+  background: var(--navy); color: #fff; border: 1px solid var(--navy);
+  padding: 12px 22px; font-size: 14px; font-family: inherit; cursor: pointer;
+  border-radius: 2px; letter-spacing: 0.02em;
+}
+.btn-primary:hover { background: var(--navy-deep); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  /* ── Profile banner ── */
-  .profile-banner {
-    background: var(--navy); color: #fff; padding: 20px 24px;
-    border-top: 4px solid var(--gold); margin-bottom: 20px;
-    display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px;
-  }
-  .profile-banner .pname { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
-  .profile-banner .pmeta { font-size: 13px; color: var(--gold-light); letter-spacing: 0.04em; }
-  .badge {
-    display: inline-block; padding: 4px 12px; font-size: 11px; letter-spacing: 0.03em;
-    border-radius: 2px; text-transform: uppercase;
-  }
-  .badge.enrolled { background: #1e4d30; color: #7dcc9f; }
-  .badge.not-enrolled { background: #4d1e1e; color: #f09090; }
-  .badge.irregular { background: #4d3b0a; color: #e0c158; }
-  .profile-fields { display: flex; flex-wrap: wrap; gap: 16px 32px; margin-top: 10px; }
-  .pf-item { font-size: 13px; }
-  .pf-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(255,255,255,0.45); margin-bottom: 2px; }
-  .pf-value { color: rgba(255,255,255,0.9); }
+/* Placeholder */
+.placeholder {
+  text-align: center; padding: 60px 20px; color: var(--ink-soft);
+  border: 1px dashed var(--paper-line); background: #fff;
+}
+.placeholder .mark { font-size: 32px; color: var(--paper-line); margin-bottom: 10px; }
+.loading-spinner { text-align: center; padding: 50px; color: var(--ink-soft); font-size: 15px; }
 
-  /* ── Section grid ── */
-  .section-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
-  }
-  @media (max-width: 700px) { .section-grid { grid-template-columns: 1fr; } }
+/* Employee search bar */
+.staff-search-bar {
+  display: flex; gap: 10px; margin-bottom: 24px;
+  background: #fff; padding: 16px; border: 1px solid var(--paper-line);
+  border-top: 4px solid var(--gold);
+}
+.staff-search-bar input {
+  flex: 1; padding: 10px 12px; border: 1px solid var(--paper-line);
+  font-family: inherit; font-size: 14px; border-radius: 2px;
+  border-left: 4px solid var(--gold);
+}
+.staff-search-bar input:focus { outline: 2px solid var(--gold); outline-offset: -1px; }
+.staff-search-bar button { white-space: nowrap; }
 
-  /* ── Data card ── */
-  .data-card {
-    background: #fff; border: 1px solid var(--paper-line);
-  }
-  .data-card.full { grid-column: 1 / -1; }
-  .card-head {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 16px; background: var(--navy); color: var(--gold-light);
-    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
-  }
-  .card-head .sys-badge {
-    font-size: 10px; padding: 2px 8px; border-radius: 2px; letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-  .sys-badge.up { background: rgba(45,107,70,0.6); color: #7dcc9f; }
-  .sys-badge.down { background: rgba(161,61,61,0.5); color: #f09090; }
-  .sys-badge.pending { background: rgba(100,100,100,0.3); color: #aaa; }
+.search-results {
+  background: #fff; border: 1px solid var(--paper-line); margin-bottom: 20px;
+}
+.search-result-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 16px; border-bottom: 1px solid var(--paper-line); cursor: pointer;
+}
+.search-result-row:last-child { border-bottom: none; }
+.search-result-row:hover { background: var(--paper); }
+.sr-name { font-size: 14px; font-weight: bold; }
+.sr-meta { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+.sr-arrow { color: var(--gold); font-size: 18px; }
 
-  .card-body { padding: 16px; }
-  .offline-notice {
-    padding: 18px; text-align: center; color: var(--ink-soft); font-size: 13px;
-    border: 1px dashed var(--paper-line); margin: 4px;
-  }
-  .offline-notice .off-icon { font-size: 20px; display: block; margin-bottom: 6px; color: var(--paper-line); }
-  .offline-notice strong { display: block; color: var(--ink); margin-bottom: 4px; }
+/* Profile banner */
+.profile-banner {
+  background: var(--navy); color: #fff; padding: 20px 24px;
+  border-top: 4px solid var(--gold); margin-bottom: 20px;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+}
+.profile-banner .pname { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+.profile-banner .pmeta { font-size: 13px; color: var(--gold-light); letter-spacing: 0.04em; }
+.badge {
+  display: inline-block; padding: 4px 12px; font-size: 11px; letter-spacing: 0.03em;
+  border-radius: 2px; text-transform: uppercase;
+}
+.badge.enrolled { background: #1e4d30; color: #7dcc9f; }
+.badge.not-enrolled { background: #4d1e1e; color: #f09090; }
+.badge.irregular { background: #4d3b0a; color: #e0c158; }
+.profile-fields { display: flex; flex-wrap: wrap; gap: 16px 32px; margin-top: 10px; }
+.pf-item { font-size: 13px; }
+.pf-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(255,255,255,0.45); margin-bottom: 2px; }
+.pf-value { color: rgba(255,255,255,0.9); }
+.back-btn {
+  background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.3);
+  padding: 7px 16px; border-radius: 2px; font-family: inherit; font-size: 13px;
+  cursor: pointer; margin-bottom: 16px;
+}
+.back-btn:hover { background: rgba(255,255,255,0.2); }
 
-  /* ── Grades table ── */
-  .mini-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .mini-table th {
-    text-align: left; padding: 7px 10px; background: var(--paper); font-size: 10px;
-    letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft);
-    border-bottom: 1px solid var(--paper-line);
-  }
-  .mini-table td { padding: 8px 10px; border-bottom: 1px solid var(--paper-line); }
-  .mini-table tr:last-child td { border-bottom: none; }
-  .grade-num { font-family: 'Courier New', monospace; }
-  .rmk-passed { color: var(--ok); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
-  .rmk-failed { color: var(--danger); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
-  .rmk-inc { color: var(--warn); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+/* Section grid */
+.section-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 700px) { .section-grid { grid-template-columns: 1fr; } }
 
-  /* ── Finance summary ── */
-  .finance-summary {
-    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 14px;
-  }
-  .fin-box { background: var(--paper); padding: 12px 14px; text-align: center; }
-  .fin-box .fin-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-soft); margin-bottom: 4px; }
-  .fin-box .fin-val { font-size: 18px; font-family: 'Courier New', monospace; color: var(--navy); }
-  .fin-box.balance .fin-val { color: var(--danger); }
-  .fin-box.paid .fin-val { color: var(--ok); }
+/* Data card */
+.data-card { background: #fff; border: 1px solid var(--paper-line); }
+.data-card.full { grid-column: 1 / -1; }
+.card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; background: var(--navy); color: var(--gold-light);
+  font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+}
+.card-head .sys-badge {
+  font-size: 10px; padding: 2px 8px; border-radius: 2px; letter-spacing: 0.04em; text-transform: uppercase;
+}
+.sys-badge.up { background: rgba(45,107,70,0.6); color: #7dcc9f; }
+.sys-badge.down { background: rgba(161,61,61,0.5); color: #f09090; }
+.sys-badge.pending { background: rgba(100,100,100,0.3); color: #aaa; }
+.card-body { padding: 16px; }
+.offline-notice {
+  padding: 18px; text-align: center; color: var(--ink-soft); font-size: 13px;
+  border: 1px dashed var(--paper-line); margin: 4px;
+}
+.offline-notice .off-icon { font-size: 20px; display: block; margin-bottom: 6px; color: var(--paper-line); }
+.offline-notice strong { display: block; color: var(--ink); margin-bottom: 4px; }
 
-  /* ── LMS progress ── */
-  .course-item { padding: 10px 0; border-bottom: 1px solid var(--paper-line); }
-  .course-item:last-child { border-bottom: none; }
-  .course-name { font-size: 14px; margin-bottom: 4px; }
-  .course-meta { font-size: 12px; color: var(--ink-soft); margin-bottom: 6px; }
-  .progress-bar { height: 6px; background: var(--paper-line); border-radius: 3px; overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--gold); border-radius: 3px; transition: width 0.4s ease; }
+/* Grades table */
+.mini-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.mini-table th {
+  text-align: left; padding: 7px 10px; background: var(--paper); font-size: 10px;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft);
+  border-bottom: 1px solid var(--paper-line);
+}
+.mini-table td { padding: 8px 10px; border-bottom: 1px solid var(--paper-line); }
+.mini-table tr:last-child td { border-bottom: none; }
+.grade-num { font-family: 'Courier New', monospace; }
+.rmk-passed { color: var(--ok); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+.rmk-failed { color: var(--danger); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+.rmk-inc { color: var(--warn); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
 
-  /* ── Enrollment schedule ── */
-  .sched-item { padding: 9px 0; border-bottom: 1px solid var(--paper-line); font-size: 13px; }
-  .sched-item:last-child { border-bottom: none; }
-  .sched-subj { font-size: 14px; }
-  .sched-detail { color: var(--ink-soft); font-size: 12px; margin-top: 2px; }
+/* Finance */
+.finance-summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.fin-box { background: var(--paper); padding: 12px 14px; text-align: center; }
+.fin-box .fin-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-soft); margin-bottom: 4px; }
+.fin-box .fin-val { font-size: 18px; font-family: 'Courier New', monospace; color: var(--navy); }
+.fin-box.balance .fin-val { color: var(--danger); }
+.fin-box.paid .fin-val { color: var(--ok); }
 
-  /* ── Toast ── */
-  .toast {
-    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
-    background: var(--navy); color: #fff; padding: 11px 20px; font-size: 14px;
-    border-radius: 2px; border-left: 4px solid var(--gold); opacity: 0;
-    transition: all 0.22s ease; pointer-events: none;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+/* LMS */
+.course-item { padding: 10px 0; border-bottom: 1px solid var(--paper-line); }
+.course-item:last-child { border-bottom: none; }
+.course-name { font-size: 14px; margin-bottom: 4px; }
+.course-meta { font-size: 12px; color: var(--ink-soft); margin-bottom: 6px; }
+.progress-bar { height: 6px; background: var(--paper-line); border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--gold); border-radius: 3px; transition: width 0.4s ease; }
+
+/* Enrollment */
+.sched-item { padding: 9px 0; border-bottom: 1px solid var(--paper-line); font-size: 13px; }
+.sched-item:last-child { border-bottom: none; }
+.sched-subj { font-size: 14px; }
+.sched-detail { color: var(--ink-soft); font-size: 12px; margin-top: 2px; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--navy); color: #fff; padding: 11px 20px; font-size: 14px;
+  border-radius: 2px; border-left: 4px solid var(--gold); opacity: 0;
+  transition: all 0.22s ease; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
-
 <header>
   <div class="brand">
     <h1>IT Department — User Dashboard</h1>
     <div class="sub">Group 3 &middot; Central Hub</div>
   </div>
-  <button class="signout-btn" id="signoutBtn" onclick="doLogout()">Sign Out</button>
+  <div class="header-right">
+    <span class="role-badge" id="roleBadge"></span>
+    <button class="signout-btn" id="signoutBtn" onclick="doLogout()">Sign Out</button>
+  </div>
 </header>
 
 <main>
   <!-- Login screen -->
   <div id="loginView" class="login-wrap">
     <div class="login-box">
-      <h2>Student Login</h2>
-      <p>Sign in to view your records across all connected systems.</p>
-      <div class="login-field">
-        <label>Student Number</label>
-        <input type="text" id="loginId" placeholder="e.g. 2026-00234" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
+      <h2>Sign In</h2>
+      <p>Access your records or staff dashboard.</p>
+      <div class="login-tabs">
+        <button class="login-tab active" id="tabStudent" onclick="switchTab('student')">Student</button>
+        <button class="login-tab" id="tabEmployee" onclick="switchTab('employee')">Employee</button>
       </div>
-      <div class="login-field">
-        <label>Password</label>
-        <input type="password" id="loginPass" placeholder="Enter your password" onkeydown="if(event.key==='Enter')doLogin()">
+
+      <!-- Student fields -->
+      <div id="studentFields">
+        <div class="login-field">
+          <label>Student Number</label>
+          <input type="text" id="loginId" placeholder="e.g. 2026-00234" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <div class="login-field">
+          <label>Password</label>
+          <input type="password" id="loginPass" placeholder="Enter your password" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <button class="btn-primary" id="loginBtn" onclick="doLogin()">Sign In as Student</button>
       </div>
-      <button class="btn-primary" id="loginBtn" onclick="doLogin()">Sign In</button>
+
+      <!-- Employee fields -->
+      <div id="employeeFields" style="display:none;">
+        <div class="login-field">
+          <label>Employee ID</label>
+          <input type="text" id="loginEmpId" placeholder="e.g. EMP-001" autocomplete="off" onkeydown="if(event.key==='Enter')doStaffLogin()">
+        </div>
+        <div class="login-field">
+          <label>Password</label>
+          <input type="password" id="loginEmpPass" placeholder="Enter your password" onkeydown="if(event.key==='Enter')doStaffLogin()">
+        </div>
+        <button class="btn-primary" id="loginEmpBtn" onclick="doStaffLogin()">Sign In as Employee</button>
+      </div>
+
       <div class="login-error" id="loginError"></div>
     </div>
   </div>
 
-  <!-- Dashboard (after login) -->
+  <!-- Student dashboard -->
   <div id="dashView" style="display:none;">
     <div id="studentContent">
       <div class="loading-spinner">Fetching your records…</div>
+    </div>
+  </div>
+
+  <!-- Employee dashboard -->
+  <div id="staffView" style="display:none;">
+    <div class="staff-search-bar">
+      <input type="text" id="staffSearchInput" placeholder="Search by name or student number…" onkeydown="if(event.key==='Enter')doStaffSearch()">
+      <button class="btn-primary" onclick="doStaffSearch()">Search</button>
+    </div>
+    <div id="staffSearchResults"></div>
+    <div id="staffStudentDetail" style="display:none;">
+      <button class="back-btn" onclick="backToSearch()">← Back to Search</button>
+      <div id="staffDetailContent"><div class="loading-spinner">Loading…</div></div>
     </div>
   </div>
 </main>
@@ -223,324 +301,349 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  const HUB = 'https://it-department-hub.onrender.com';
+const HUB = 'https://it-department-hub.onrender.com';
+let currentTab = 'student';
 
-  // ── Toast ─────────────────────────────────────────────────────────────────
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2400);
-  }
+// ── Tab switch ────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tabStudent').classList.toggle('active', tab === 'student');
+  document.getElementById('tabEmployee').classList.toggle('active', tab === 'employee');
+  document.getElementById('studentFields').style.display = tab === 'student' ? 'block' : 'none';
+  document.getElementById('employeeFields').style.display = tab === 'employee' ? 'block' : 'none';
+  document.getElementById('loginError').classList.remove('show');
+}
 
-  // ── Login / logout ────────────────────────────────────────────────────────
-  function showLogin(message) {
-    document.getElementById('dashView').style.display = 'none';
-    document.getElementById('loginView').style.display = 'flex';
-    document.getElementById('signoutBtn').style.display = 'none';
-    const err = document.getElementById('loginError');
-    if (message) {
-      err.textContent = message;
-      err.classList.add('show');
-    } else {
-      err.classList.remove('show');
-    }
-  }
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
 
-  function showDashboard() {
-    document.getElementById('loginView').style.display = 'none';
-    document.getElementById('dashView').style.display = 'block';
-    document.getElementById('signoutBtn').style.display = 'inline-block';
-  }
+// ── Show/hide views ───────────────────────────────────────────────────────────
+function showLogin(message) {
+  document.getElementById('dashView').style.display = 'none';
+  document.getElementById('staffView').style.display = 'none';
+  document.getElementById('loginView').style.display = 'flex';
+  document.getElementById('signoutBtn').style.display = 'none';
+  document.getElementById('roleBadge').style.display = 'none';
+  const err = document.getElementById('loginError');
+  if (message) { err.textContent = message; err.classList.add('show'); }
+  else { err.classList.remove('show'); }
+}
 
-  async function doLogin() {
-    const id = document.getElementById('loginId').value.trim();
-    const pw = document.getElementById('loginPass').value;
-    if (!id || !pw) { showToast('Enter your student number and password.'); return; }
+function showStudentDashboard() {
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('dashView').style.display = 'block';
+  document.getElementById('staffView').style.display = 'none';
+  document.getElementById('signoutBtn').style.display = 'inline-block';
+  const badge = document.getElementById('roleBadge');
+  badge.textContent = 'Student';
+  badge.className = 'role-badge student';
+  badge.style.display = 'inline-block';
+}
 
-    const btn = document.getElementById('loginBtn');
-    btn.disabled = true;
-    btn.textContent = 'Signing in…';
-    try {
-      const res = await fetch(`${HUB}/hub/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ student_id: id, password: pw })
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        showLogin(data.error || 'Login failed. Try again.');
-        return;
-      }
-      sessionStorage.setItem('hubToken', data.token);
-      sessionStorage.setItem('hubStudent', data.student_id);
-      document.getElementById('loginPass').value = '';
-      showDashboard();
-      await loadMyRecords();
-    } catch (err) {
-      showLogin('Could not reach the server. Wait a moment and try again.');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Sign In';
-    }
-  }
+function showStaffDashboard() {
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('dashView').style.display = 'none';
+  document.getElementById('staffView').style.display = 'block';
+  document.getElementById('signoutBtn').style.display = 'inline-block';
+  const badge = document.getElementById('roleBadge');
+  badge.textContent = 'Employee — ' + (sessionStorage.getItem('hubStaffName') || '');
+  badge.className = 'role-badge employee';
+  badge.style.display = 'inline-block';
+}
 
-  function doLogout() {
-    sessionStorage.removeItem('hubToken');
-    sessionStorage.removeItem('hubStudent');
-    document.getElementById('loginId').value = '';
+// ── Student login ─────────────────────────────────────────────────────────────
+async function doLogin() {
+  const id = document.getElementById('loginId').value.trim();
+  const pw = document.getElementById('loginPass').value;
+  if (!id || !pw) { showToast('Enter your student number and password.'); return; }
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try {
+    const res = await fetch(`${HUB}/hub/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ student_id: id, password: pw })
+    });
+    const data = await res.json();
+    if (!res.ok) { showLogin(data.error || 'Login failed. Try again.'); return; }
+    sessionStorage.setItem('hubToken', data.token);
+    sessionStorage.setItem('hubStudent', data.student_id);
+    sessionStorage.setItem('hubRole', 'student');
     document.getElementById('loginPass').value = '';
-    document.getElementById('studentContent').innerHTML = '';
-    showLogin('');
+    showStudentDashboard();
+    await loadMyRecords();
+  } catch (err) {
+    showLogin('Could not reach the server. Wait a moment and try again.');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign In as Student';
   }
+}
 
-  // ── Load the logged-in student's own record ───────────────────────────────
-  async function loadMyRecords() {
-    const token = sessionStorage.getItem('hubToken');
-    const id = sessionStorage.getItem('hubStudent');
-    const content = document.getElementById('studentContent');
-    if (!token || !id) { showLogin(''); return; }
+// ── Employee login ────────────────────────────────────────────────────────────
+async function doStaffLogin() {
+  const id = document.getElementById('loginEmpId').value.trim();
+  const pw = document.getElementById('loginEmpPass').value;
+  if (!id || !pw) { showToast('Enter your employee ID and password.'); return; }
+  const btn = document.getElementById('loginEmpBtn');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try {
+    const res = await fetch(`${HUB}/hub/staff-login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ employee_id: id, password: pw })
+    });
+    const data = await res.json();
+    if (!res.ok) { showLogin(data.error || 'Login failed. Try again.'); return; }
+    sessionStorage.setItem('hubToken', data.token);
+    sessionStorage.setItem('hubStaffId', data.employee_id);
+    sessionStorage.setItem('hubStaffName', data.full_name);
+    sessionStorage.setItem('hubRole', 'employee');
+    document.getElementById('loginEmpPass').value = '';
+    showStaffDashboard();
+  } catch (err) {
+    showLogin('Could not reach the server. Wait a moment and try again.');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign In as Employee';
+  }
+}
 
-    content.innerHTML = '<div class="loading-spinner">Fetching your records…</div>';
-    try {
-      const res = await fetch(`${HUB}/hub/students/${encodeURIComponent(id)}/full`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.status === 401 || res.status === 403) {
-        doLogout();
-        showLogin('Your session ended. Please sign in again.');
-        return;
-      }
-      if (res.status === 404) {
-        content.innerHTML = `<div class="placeholder"><div class="mark">—</div>No record found for <strong>${id}</strong>.</div>`;
-        return;
-      }
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      content.innerHTML = renderDashboard(data);
-    } catch (err) {
-      content.innerHTML = `<div class="placeholder"><div class="mark">—</div>Could not load records: ${err.message}</div>`;
+// ── Logout ────────────────────────────────────────────────────────────────────
+function doLogout() {
+  sessionStorage.clear();
+  document.getElementById('loginId').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginEmpId').value = '';
+  document.getElementById('loginEmpPass').value = '';
+  document.getElementById('studentContent').innerHTML = '';
+  document.getElementById('staffSearchResults').innerHTML = '';
+  document.getElementById('staffStudentDetail').style.display = 'none';
+  showLogin('');
+}
+
+// ── Student: load own records ─────────────────────────────────────────────────
+async function loadMyRecords() {
+  const token = sessionStorage.getItem('hubToken');
+  const id = sessionStorage.getItem('hubStudent');
+  const content = document.getElementById('studentContent');
+  if (!token || !id) { showLogin(''); return; }
+  content.innerHTML = '<div class="loading-spinner">Fetching your records…</div>';
+  try {
+    const res = await fetch(`${HUB}/hub/students/${encodeURIComponent(id)}/full`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.status === 401 || res.status === 403) { doLogout(); showLogin('Your session ended. Please sign in again.'); return; }
+    if (res.status === 404) {
+      content.innerHTML = `<div class="placeholder"><div class="mark">—</div>No record found for <strong>${id}</strong>.</div>`;
+      return;
     }
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    content.innerHTML = renderDashboard(data);
+  } catch (err) {
+    content.innerHTML = `<div class="placeholder"><div class="mark">—</div>Could not load records: ${err.message}</div>`;
   }
+}
 
-  // ── Shared dashboard renderer ─────────────────────────────────────────────
-  function badgeClass(status) {
-    if (status === 'enrolled') return 'enrolled';
-    if (status === 'not-enrolled') return 'not-enrolled';
-    return 'irregular';
-  }
-
-  function renderDashboard(data) {
-    const p = data.profile;
-    return `
-      ${renderProfile(p)}
-      <div class="section-grid">
-        ${renderGrades(data.grades, data.gradesError)}
-        ${renderEnrollment(data.enrollment, data.enrollmentError)}
-        ${renderFinance(data.finance, data.financeError)}
-        ${renderLMS(data.lms, data.lmsError)}
-      </div>
-    `;
-  }
-
-  function renderProfile(p) {
-    return `
-      <div class="profile-banner">
-        <div>
-          <div class="pname">${p.full_name}</div>
-          <div class="pmeta">Student No. ${p.student_id}</div>
-          <div class="profile-fields">
-            <div class="pf-item"><div class="pf-label">Year Level</div><div class="pf-value">${p.year_level ?? '—'}</div></div>
-            <div class="pf-item"><div class="pf-label">Section</div><div class="pf-value">${p.section ?? '—'}</div></div>
-            <div class="pf-item"><div class="pf-label">Email</div><div class="pf-value">${p.email ?? '—'}</div></div>
-            <div class="pf-item"><div class="pf-label">Contact</div><div class="pf-value">${p.contact_number ?? '—'}</div></div>
-            <div class="pf-item"><div class="pf-label">Address</div><div class="pf-value">${p.address ?? '—'}</div></div>
-          </div>
-        </div>
-        <div style="padding-top:4px;">
-          <span class="badge ${badgeClass(p.enrollment_status)}">${p.enrollment_status ?? 'unknown'}</span>
-        </div>
-      </div>
-    `;
-  }
-
-  function renderGrades(grades, err) {
-    const head = `<div class="card-head"><span>Grades on File</span><span class="sys-badge up">Student Records ↑</span></div>`;
-    if (err && err !== 'null') {
-      return `<div class="data-card full">${head}<div class="card-body"><div class="offline-notice"><span class="off-icon">—</span><strong>Could not load grades</strong>${err}</div></div></div>`;
+// ── Employee: search students ─────────────────────────────────────────────────
+async function doStaffSearch() {
+  const q = document.getElementById('staffSearchInput').value.trim();
+  if (!q) { showToast('Enter a name or student number to search.'); return; }
+  const resultsDiv = document.getElementById('staffSearchResults');
+  document.getElementById('staffStudentDetail').style.display = 'none';
+  resultsDiv.innerHTML = '<div class="loading-spinner">Searching…</div>';
+  try {
+    const res = await fetch(`${HUB}/hub/students/search?q=${encodeURIComponent(q)}`);
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) {
+      resultsDiv.innerHTML = `<div class="placeholder"><div class="mark">—</div>No students found for "<strong>${q}</strong>".</div>`;
+      return;
     }
-    if (!grades || grades.length === 0) {
-      return `<div class="data-card full">${head}<div class="card-body"><div class="offline-notice"><span class="off-icon">—</span><strong>No grades on file yet.</strong>Grades will appear here once they are recorded by the Registrar.</div></div></div>`;
-    }
-    const rows = grades.map(g => `
-      <tr>
-        <td>${g.subject_code}</td>
-        <td>${g.subject_name}</td>
-        <td>${g.school_year ?? '—'}</td>
-        <td>${g.semester ?? '—'}</td>
-        <td class="grade-num">${g.grade ?? '—'}</td>
-        <td class="${g.remarks === 'passed' ? 'rmk-passed' : g.remarks === 'failed' ? 'rmk-failed' : g.remarks === 'incomplete' ? 'rmk-inc' : ''}">${g.remarks ?? '—'}</td>
-      </tr>
-    `).join('');
-    return `
-      <div class="data-card full">
-        ${head}
-        <div class="card-body">
-          <table class="mini-table">
-            <thead><tr><th>Code</th><th>Subject</th><th>S.Y.</th><th>Sem</th><th>Grade</th><th>Remarks</th></tr></thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </div>
-      </div>
-    `;
-  }
-
-  function renderEnrollment(data, err) {
-    const sysUp = data !== null && err === null;
-    const badge = err === 'not-configured'
-      ? `<span class="sys-badge pending">Enrollment — Pending</span>`
-      : sysUp
-        ? `<span class="sys-badge up">Enrollment ↑</span>`
-        : `<span class="sys-badge down">Enrollment ↓</span>`;
-    const head = `<div class="card-head"><span>Enrolled Subjects</span>${badge}</div>`;
-
-    if (err === 'not-configured' || err) {
-      return `
-        <div class="data-card">
-          ${head}
-          <div class="card-body">
-            <div class="offline-notice">
-              <span class="off-icon">—</span>
-              <strong>${err === 'not-configured' ? 'System not connected yet' : 'System offline'}</strong>
-              ${err === 'not-configured'
-                ? 'The Enrollment System has not been registered with the Hub yet. This will be available once that group deploys their API.'
-                : err}
+    resultsDiv.innerHTML = `
+      <div class="search-results">
+        ${data.map(s => `
+          <div class="search-result-row" onclick="loadStaffStudentDetail('${s.student_id}')">
+            <div>
+              <div class="sr-name">${s.full_name}</div>
+              <div class="sr-meta">${s.student_id} &middot; Year ${s.year_level ?? '—'} &middot; ${s.section ?? '—'} &middot; <span class="badge ${badgeClass(s.enrollment_status)}" style="font-size:10px;">${s.enrollment_status ?? 'unknown'}</span></div>
             </div>
+            <span class="sr-arrow">›</span>
           </div>
-        </div>`;
-    }
-
-    if (!data || data.length === 0) {
-      return `<div class="data-card">${head}<div class="card-body"><div class="offline-notice"><span class="off-icon">—</span><strong>No subjects found.</strong>No enrolled subjects on file for this student.</div></div></div>`;
-    }
-
-    const items = data.map(s => `
-      <div class="sched-item">
-        <div class="sched-subj">${s.subject_code} — ${s.subject_name}</div>
-        <div class="sched-detail">${[s.schedule, s.room, s.instructor].filter(Boolean).join(' &middot; ')}</div>
-      </div>
-    `).join('');
-    return `<div class="data-card">${head}<div class="card-body">${items}</div></div>`;
-  }
-
-  function renderFinance(data, err) {
-    const sysUp = data !== null && err === null;
-    const badge = err === 'not-configured'
-      ? `<span class="sys-badge pending">Finance — Pending</span>`
-      : sysUp
-        ? `<span class="sys-badge up">Finance ↑</span>`
-        : `<span class="sys-badge down">Finance ↓</span>`;
-    const head = `<div class="card-head"><span>Finance / Payments</span>${badge}</div>`;
-
-    if (err === 'not-configured' || err) {
-      return `
-        <div class="data-card">
-          ${head}
-          <div class="card-body">
-            <div class="offline-notice">
-              <span class="off-icon">—</span>
-              <strong>${err === 'not-configured' ? 'System not connected yet' : 'System offline'}</strong>
-              ${err === 'not-configured'
-                ? 'The Finance System has not been registered with the Hub yet. This will be available once that group deploys their API.'
-                : err}
-            </div>
-          </div>
-        </div>`;
-    }
-
-    const fmt = (n) => n !== undefined && n !== null ? `₱${Number(n).toLocaleString('en-PH', { minimumFractionDigits: 2 })}` : '—';
-
-    let txRows = '';
-    if (data.transactions && data.transactions.length > 0) {
-      txRows = `
-        <table class="mini-table" style="margin-top:10px;">
-          <thead><tr><th>Date</th><th>Description</th><th>Amount</th></tr></thead>
-          <tbody>
-            ${data.transactions.map(tx => `
-              <tr>
-                <td>${tx.date ?? '—'}</td>
-                <td>${tx.description ?? '—'}</td>
-                <td class="grade-num">${fmt(tx.amount)}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `;
-    }
-
-    return `
-      <div class="data-card">
-        ${head}
-        <div class="card-body">
-          <div class="finance-summary">
-            <div class="fin-box"><div class="fin-label">Total Fees</div><div class="fin-val">${fmt(data.total_fees)}</div></div>
-            <div class="fin-box paid"><div class="fin-label">Total Paid</div><div class="fin-val">${fmt(data.total_paid)}</div></div>
-            <div class="fin-box balance"><div class="fin-label">Balance</div><div class="fin-val">${fmt(data.balance)}</div></div>
-          </div>
-          ${txRows}
-        </div>
+        `).join('')}
       </div>`;
+  } catch (err) {
+    resultsDiv.innerHTML = `<div class="placeholder"><div class="mark">—</div>Search failed: ${err.message}</div>`;
   }
+}
 
-  function renderLMS(data, err) {
-    const sysUp = data !== null && err === null;
-    const badge = err === 'not-configured'
-      ? `<span class="sys-badge pending">LMS — Pending</span>`
-      : sysUp
-        ? `<span class="sys-badge up">LMS ↑</span>`
-        : `<span class="sys-badge down">LMS ↓</span>`;
-    const head = `<div class="card-head"><span>LMS / Courses</span>${badge}</div>`;
+// ── Employee: view a student's full record ────────────────────────────────────
+async function loadStaffStudentDetail(id) {
+  const token = sessionStorage.getItem('hubToken');
+  document.getElementById('staffSearchResults').style.display = 'none';
+  const detailDiv = document.getElementById('staffStudentDetail');
+  const contentDiv = document.getElementById('staffDetailContent');
+  detailDiv.style.display = 'block';
+  contentDiv.innerHTML = '<div class="loading-spinner">Loading student record…</div>';
+  try {
+    const res = await fetch(`${HUB}/hub/students/${encodeURIComponent(id)}/full`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.status === 401) { doLogout(); showLogin('Your session ended. Please sign in again.'); return; }
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    contentDiv.innerHTML = renderDashboard(data);
+  } catch (err) {
+    contentDiv.innerHTML = `<div class="placeholder"><div class="mark">—</div>Could not load record: ${err.message}</div>`;
+  }
+}
 
-    if (err === 'not-configured' || err) {
-      return `
-        <div class="data-card">
-          ${head}
-          <div class="card-body">
-            <div class="offline-notice">
-              <span class="off-icon">—</span>
-              <strong>${err === 'not-configured' ? 'System not connected yet' : 'System offline'}</strong>
-              ${err === 'not-configured'
-                ? 'The LMS has not been registered with the Hub yet. This will be available once that group deploys their API.'
-                : err}
-            </div>
-          </div>
-        </div>`;
-    }
+function backToSearch() {
+  document.getElementById('staffStudentDetail').style.display = 'none';
+  document.getElementById('staffSearchResults').style.display = 'block';
+}
 
-    if (!data || data.length === 0) {
-      return `<div class="data-card">${head}<div class="card-body"><div class="offline-notice"><span class="off-icon">—</span><strong>No courses found.</strong>No LMS courses on file for this student.</div></div></div>`;
-    }
+// ── Shared dashboard renderer ─────────────────────────────────────────────────
+function badgeClass(status) {
+  if (status === 'enrolled') return 'enrolled';
+  if (status === 'not-enrolled') return 'not-enrolled';
+  return 'irregular';
+}
 
-    const items = data.map(c => `
-      <div class="course-item">
-        <div class="course-name">${c.course_code} — ${c.course_name}</div>
-        <div class="course-meta">${[c.instructor, c.lms_grade !== undefined && c.lms_grade !== null ? `Grade: ${c.lms_grade}` : null].filter(Boolean).join(' &middot; ')}</div>
-        ${c.progress_pct !== undefined && c.progress_pct !== null ? `
-          <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(100, c.progress_pct)}%"></div></div>
-          <div style="font-size:11px;color:var(--ink-soft);margin-top:3px;">${c.progress_pct}% complete</div>
-        ` : ''}
+function renderDashboard(data) {
+  const p = data.profile;
+  return `
+    ${renderProfile(p)}
+    <div class="section-grid">
+      ${renderGrades(data.grades, data.gradesError)}
+      ${renderEnrollment(data.enrollment, data.enrollmentError)}
+      ${renderFinance(data.finance, data.financeError)}
+      ${renderLMS(data.lms, data.lmsError)}
+    </div>`;
+}
+
+function renderProfile(p) {
+  return `
+    <div class="profile-banner">
+      <div>
+        <div class="pname">${p.full_name}</div>
+        <div class="pmeta">Student No. ${p.student_id}</div>
+        <div class="profile-fields">
+          <div class="pf-item"><div class="pf-label">Year Level</div><div class="pf-value">${p.year_level ?? '—'}</div></div>
+          <div class="pf-item"><div class="pf-label">Section</div><div class="pf-value">${p.section ?? '—'}</div></div>
+          <div class="pf-item"><div class="pf-label">Email</div><div class="pf-value">${p.email ?? '—'}</div></div>
+          <div class="pf-item"><div class="pf-label">Contact</div><div class="pf-value">${p.contact_number ?? '—'}</div></div>
+          <div class="pf-item"><div class="pf-label">Address</div><div class="pf-value">${p.address ?? '—'}</div></div>
+        </div>
       </div>
-    `).join('');
+      <div style="padding-top:4px;">
+        <span class="badge ${badgeClass(p.enrollment_status)}">${p.enrollment_status ?? 'unknown'}</span>
+      </div>
+    </div>`;
+}
 
-    return `<div class="data-card">${head}<div class="card-body">${items}</div></div>`;
+function renderGrades(grades, err) {
+  const head = `<div class="card-head"><span>Grades on File</span><span class="sys-badge up">Student Records ↑</span></div>`;
+  if (err && err !== 'null') {
+    return `<div class="data-card full">${head}<div class="card-body"><div class="offline-notice"><span class="off-icon">—</span><strong>Could not load grades</strong>${err}</div></div></div>`;
   }
+  if (!grades || grades.length === 0) {
+    return `<div class="data-card full">${head}<div class="card-body"><div class="offline-notice"><span class="off-icon">—</span><strong>No grades on file yet.</strong></div></div></div>`;
+  }
+  const rows = grades.map(g => `
+    <tr>
+      <td>${g.subject_code}</td><td>${g.subject_name}</td>
+      <td>${g.school_year ?? '—'}</td><td>${g.semester ?? '—'}</td>
+      <td class="grade-num">${g.grade ?? '—'}</td>
+      <td class="${g.remarks === 'passed' ? 'rmk-passed' : g.remarks === 'failed' ? 'rmk-failed' : g.remarks === 'incomplete' ? 'rmk-inc' : ''}">${g.remarks ?? '—'}</td>
+    </tr>`).join('');
+  return `
+    <div class="data-card full">${head}
+      <div class="card-body">
+        <table class="mini-table">
+          <thead><tr><th>Code</th><th>Subject</th><th>S.Y.</th><th>Sem</th><th>Grade</th><th>Remarks</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
 
-  // ── On page load: if still signed in, go straight to the dashboard ────────
-  if (sessionStorage.getItem('hubToken') && sessionStorage.getItem('hubStudent')) {
-    showDashboard();
-    loadMyRecords();
+function renderEnrollment(data, err) {
+  const sysUp = data !== null && err === null;
+  const badge = err === 'not-configured' ? `<span class="sys-badge pending">Enrollment — Pending</span>`
+    : sysUp ? `<span class="sys-badge up">Enrollment ↑</span>` : `<span class="sys-badge down">Enrollment ↓</span>`;
+  const head = `<div class="card-head"><span>Enrolled Subjects</span>${badge}</div>`;
+  if (err) {
+    return `<div class="data-card">${head}<div class="card-body"><div class="offline-notice"><span class="off-icon">—</span><strong>${err === 'not-configured' ? 'System not connected yet' : 'System offline'}</strong></div></div></div>`;
   }
+  if (!data || data.length === 0) {
+    return `<div class="data-card">${head}<div class="card-body"><div class="offline-notice"><span class="off-icon">—</span><strong>No subjects found.</strong></div></div></div>`;
+  }
+  const items = data.map(s => `
+    <div class="sched-item">
+      <div class="sched-subj">${s.subject_code} — ${s.subject_name}</div>
+      <div class="sched-detail">${[s.schedule, s.room, s.instructor].filter(Boolean).join(' · ')}</div>
+    </div>`).join('');
+  return `<div class="data-card">${head}<div class="card-body">${items}</div></div>`;
+}
+
+function renderFinance(data, err) {
+  const sysUp = data !== null && err === null;
+  const badge = err === 'not-configured' ? `<span class="sys-badge pending">Finance — Pending</span>`
+    : sysUp ? `<span class="sys-badge up">Finance ↑</span>` : `<span class="sys-badge down">Finance ↓</span>`;
+  const head = `<div class="card-head"><span>Finance / Payments</span>${badge}</div>`;
+  if (err) {
+    return `<div class="data-card">${head}<div class="card-body"><div class="offline-notice"><span class="off-icon">—</span><strong>${err === 'not-configured' ? 'System not connected yet' : 'System offline'}</strong></div></div></div>`;
+  }
+  const fmt = (n) => n !== undefined && n !== null ? `₱ ${Number(n).toLocaleString('en-PH', { minimumFractionDigits: 2 })}` : '—';
+  let txRows = '';
+  if (data.transactions && data.transactions.length > 0) {
+    txRows = `<table class="mini-table" style="margin-top:10px;">
+      <thead><tr><th>Date</th><th>Description</th><th>Amount</th></tr></thead>
+      <tbody>${data.transactions.map(tx => `<tr><td>${tx.date ?? '—'}</td><td>${tx.description ?? '—'}</td><td class="grade-num">${fmt(tx.amount)}</td></tr>`).join('')}</tbody>
+    </table>`;
+  }
+  return `<div class="data-card">${head}<div class="card-body">
+    <div class="finance-summary">
+      <div class="fin-box"><div class="fin-label">Total Fees</div><div class="fin-val">${fmt(data.total_fees)}</div></div>
+      <div class="fin-box paid"><div class="fin-label">Total Paid</div><div class="fin-val">${fmt(data.total_paid)}</div></div>
+      <div class="fin-box balance"><div class="fin-label">Balance</div><div class="fin-val">${fmt(data.balance)}</div></div>
+    </div>${txRows}</div></div>`;
+}
+
+function renderLMS(data, err) {
+  const sysUp = data !== null && err === null;
+  const badge = err === 'not-configured' ? `<span class="sys-badge pending">LMS — Pending</span>`
+    : sysUp ? `<span class="sys-badge up">LMS ↑</span>` : `<span class="sys-badge down">LMS ↓</span>`;
+  const head = `<div class="card-head"><span>LMS / Courses</span>${badge}</div>`;
+  if (err) {
+    return `<div class="data-card">${head}<div class="card-body"><div class="offline-notice"><span class="off-icon">—</span><strong>${err === 'not-configured' ? 'System not connected yet' : 'System offline'}</strong></div></div></div>`;
+  }
+  if (!data || data.length === 0) {
+    return `<div class="data-card">${head}<div class="card-body"><div class="offline-notice"><span class="off-icon">—</span><strong>No courses found.</strong></div></div></div>`;
+  }
+  const items = data.map(c => `
+    <div class="course-item">
+      <div class="course-name">${c.course_code} — ${c.course_name}</div>
+      <div class="course-meta">${[c.instructor, c.lms_grade !== undefined && c.lms_grade !== null ? `Grade: ${c.lms_grade}` : null].filter(Boolean).join(' · ')}</div>
+      ${c.progress_pct !== undefined && c.progress_pct !== null ? `
+        <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(100, c.progress_pct)}%"></div></div>
+        <div style="font-size:11px;color:var(--ink-soft);margin-top:3px;">${c.progress_pct}% complete</div>` : ''}
+    </div>`).join('');
+  return `<div class="data-card">${head}<div class="card-body">${items}</div></div>`;
+}
+
+// ── On page load: restore session ─────────────────────────────────────────────
+const role = sessionStorage.getItem('hubRole');
+if (role === 'student' && sessionStorage.getItem('hubToken')) {
+  showStudentDashboard();
+  loadMyRecords();
+} else if (role === 'employee' && sessionStorage.getItem('hubToken')) {
+  showStaffDashboard();
+}
 </script>
-
 </body>
 </html>
