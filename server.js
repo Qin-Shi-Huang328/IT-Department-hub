@@ -3,33 +3,33 @@ const express = require('express');
 const cors = require('cors');
 const crypto = require('crypto');
 const fetch = require('node-fetch');
+const { Pool } = require('pg');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const REGISTRY = {
-  'student-records': {
-    name: 'Student Records',
-    baseUrl: 'https://student-records-api-6qqj.onrender.com'
-  },
-  'enrollment': {
-    name: 'Enrollment System',
-    baseUrl: ''
-  },
-  'finance': {
-    name: 'Finance / Transaction',
-    baseUrl: ''
-  },
-  'lms': {
-    name: 'LMS',
-    baseUrl: ''
-  },
-  'web-portal': {
-    name: 'Web Portal',
-    baseUrl: 'https://clocks-stretch-declared-charlie.trycloudflare.com'
-  },
-};
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+
+function requireApiKey(req, res, next) {
+  const key = req.header('x-api-key');
+  if (!key || key !== process.env.API_KEY) {
+    return res.status(401).json({ error: 'Missing or invalid API key' });
+  }
+  next();
+}
+
+async function getRegistry() {
+  const result = await pool.query('SELECT key, name, base_url FROM systems');
+  const registry = {};
+  for (const row of result.rows) {
+    registry[row.key] = { name: row.name, baseUrl: row.base_url };
+  }
+  return registry;
+}
 
 function verifyToken(token) {
   if (!token || !process.env.AUTH_SECRET) return null;
@@ -62,19 +62,43 @@ function requireOwnRecord(req, res, next) {
 app.get('/dashboard', (req, res) => res.sendFile(require('path').join(__dirname, 'user-dashboard.html')));
 
 app.get('/', (req, res) => {
-  res.json({ message: 'Central Hub is running', systems: Object.keys(REGISTRY) });
+  res.json({ message: 'Central Hub is running' });
+});
+
+// Self-registration endpoint
+app.post('/hub/register', requireApiKey, async (req, res) => {
+  const { key, name, base_url } = req.body;
+  if (!key || !name || !base_url) {
+    return res.status(400).json({ error: 'key, name, and base_url are required' });
+  }
+  try {
+    // Test their URL first
+    const test = await fetch(`${base_url}/api/db-check`);
+    if (!test.ok) {
+      return res.status(400).json({ error: 'Could not reach your system at that URL. Make sure it is deployed and /api/db-check returns 200.' });
+    }
+    await pool.query(
+      `INSERT INTO systems (key, name, base_url)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (key) DO UPDATE SET name = $2, base_url = $3, registered_at = NOW()`,
+      [key, name, base_url]
+    );
+    res.json({ ok: true, message: `${name} registered successfully with the IT Department Hub!` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Student login
 app.post('/hub/login', async (req, res) => {
   try {
-    const r = await fetch(`${REGISTRY['student-records'].baseUrl}/api/auth/login`, {
+    const registry = await getRegistry();
+    const sr = registry['student-records'];
+    if (!sr) return res.status(503).json({ error: 'Student Records not configured' });
+    const r = await fetch(`${sr.baseUrl}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        student_id: (req.body || {}).student_id,
-        password: (req.body || {}).password
-      })
+      body: JSON.stringify({ student_id: (req.body || {}).student_id, password: (req.body || {}).password })
     });
     const data = await r.json();
     res.status(r.status).json(data);
@@ -86,13 +110,13 @@ app.post('/hub/login', async (req, res) => {
 // Employee login
 app.post('/hub/staff-login', async (req, res) => {
   try {
-    const r = await fetch(`${REGISTRY['student-records'].baseUrl}/api/auth/staff-login`, {
+    const registry = await getRegistry();
+    const sr = registry['student-records'];
+    if (!sr) return res.status(503).json({ error: 'Student Records not configured' });
+    const r = await fetch(`${sr.baseUrl}/api/auth/staff-login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        employee_id: (req.body || {}).employee_id,
-        password: (req.body || {}).password
-      })
+      body: JSON.stringify({ employee_id: (req.body || {}).employee_id, password: (req.body || {}).password })
     });
     const data = await r.json();
     res.status(r.status).json(data);
@@ -101,10 +125,11 @@ app.post('/hub/staff-login', async (req, res) => {
   }
 });
 
-// Health check
+// Health check — reads from DB
 app.get('/hub/status', async (req, res) => {
+  const registry = await getRegistry();
   const results = {};
-  for (const [key, system] of Object.entries(REGISTRY)) {
+  for (const [key, system] of Object.entries(registry)) {
     if (!system.baseUrl) {
       results[key] = { name: system.name, status: 'not-configured', error: 'URL not set yet' };
       continue;
@@ -121,12 +146,14 @@ app.get('/hub/status', async (req, res) => {
   res.json(results);
 });
 
-// Student Records proxies
+// Student search
 app.get('/hub/students/search', async (req, res) => {
   const q = req.query.q;
   if (!q || !q.trim()) return res.status(400).json({ error: 'Query parameter q is required' });
   try {
-    const r = await fetch(`${REGISTRY['student-records'].baseUrl}/api/students?search=${encodeURIComponent(q)}`);
+    const registry = await getRegistry();
+    const sr = registry['student-records'];
+    const r = await fetch(`${sr.baseUrl}/api/students?search=${encodeURIComponent(q)}`);
     const data = await r.json();
     res.status(r.status).json(data);
   } catch (err) {
@@ -136,7 +163,9 @@ app.get('/hub/students/search', async (req, res) => {
 
 app.get('/hub/students/:id', async (req, res) => {
   try {
-    const r = await fetch(`${REGISTRY['student-records'].baseUrl}/api/students/${req.params.id}/profile`);
+    const registry = await getRegistry();
+    const sr = registry['student-records'];
+    const r = await fetch(`${sr.baseUrl}/api/students/${req.params.id}/profile`);
     const data = await r.json();
     res.status(r.status).json(data);
   } catch (err) {
@@ -146,7 +175,9 @@ app.get('/hub/students/:id', async (req, res) => {
 
 app.get('/hub/students/:id/grades', async (req, res) => {
   try {
-    const r = await fetch(`${REGISTRY['student-records'].baseUrl}/api/students/${req.params.id}/grades`);
+    const registry = await getRegistry();
+    const sr = registry['student-records'];
+    const r = await fetch(`${sr.baseUrl}/api/students/${req.params.id}/grades`);
     const data = await r.json();
     res.status(r.status).json(data);
   } catch (err) {
@@ -154,13 +185,12 @@ app.get('/hub/students/:id/grades', async (req, res) => {
   }
 });
 
-// Enrollment proxy
 app.get('/hub/students/:id/enrollment', async (req, res) => {
-  if (!REGISTRY['enrollment'].baseUrl) {
-    return res.status(503).json({ error: 'Enrollment system not configured yet' });
-  }
+  const registry = await getRegistry();
+  const sys = registry['enrollment'];
+  if (!sys) return res.status(503).json({ error: 'Enrollment system not configured yet' });
   try {
-    const r = await fetch(`${REGISTRY['enrollment'].baseUrl}/api/students/${req.params.id}/schedule`);
+    const r = await fetch(`${sys.baseUrl}/api/students/${req.params.id}/schedule`);
     const data = await r.json();
     res.status(r.status).json(data);
   } catch (err) {
@@ -168,13 +198,12 @@ app.get('/hub/students/:id/enrollment', async (req, res) => {
   }
 });
 
-// Finance proxy
 app.get('/hub/students/:id/finance', async (req, res) => {
-  if (!REGISTRY['finance'].baseUrl) {
-    return res.status(503).json({ error: 'Finance system not configured yet' });
-  }
+  const registry = await getRegistry();
+  const sys = registry['finance'];
+  if (!sys) return res.status(503).json({ error: 'Finance system not configured yet' });
   try {
-    const r = await fetch(`${REGISTRY['finance'].baseUrl}/api/students/${req.params.id}/balance`);
+    const r = await fetch(`${sys.baseUrl}/api/students/${req.params.id}/balance`);
     const data = await r.json();
     res.status(r.status).json(data);
   } catch (err) {
@@ -182,13 +211,12 @@ app.get('/hub/students/:id/finance', async (req, res) => {
   }
 });
 
-// LMS proxy
 app.get('/hub/students/:id/lms', async (req, res) => {
-  if (!REGISTRY['lms'].baseUrl) {
-    return res.status(503).json({ error: 'LMS system not configured yet' });
-  }
+  const registry = await getRegistry();
+  const sys = registry['lms'];
+  if (!sys) return res.status(503).json({ error: 'LMS system not configured yet' });
   try {
-    const r = await fetch(`${REGISTRY['lms'].baseUrl}/api/students/${req.params.id}/courses`);
+    const r = await fetch(`${sys.baseUrl}/api/students/${req.params.id}/courses`);
     const data = await r.json();
     res.status(r.status).json(data);
   } catch (err) {
@@ -196,34 +224,32 @@ app.get('/hub/students/:id/lms', async (req, res) => {
   }
 });
 
-// Full bundle — LOGIN REQUIRED (students see only their own, employees see any)
+// Full bundle — login required
 app.get('/hub/students/:id/full', requireOwnRecord, async (req, res) => {
   const id = req.params.id;
-  const srBase = REGISTRY['student-records'].baseUrl;
+  const registry = await getRegistry();
+  const srBase = registry['student-records']?.baseUrl;
 
   const safe = async (fn) => {
     try { return { ok: true, data: await fn() }; }
     catch (e) { return { ok: false, error: e.message }; }
   };
-
   const fetchJSON = async (url) => {
     const r = await fetch(url);
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     return r.json();
   };
 
-  const [profile, grades, enrollment, finance, lms] = await Promise.all([
+  const enrollment = registry['enrollment'];
+  const finance = registry['finance'];
+  const lms = registry['lms'];
+
+  const [profile, grades, enrollmentData, financeData, lmsData] = await Promise.all([
     safe(() => fetchJSON(`${srBase}/api/students/${id}/profile`)),
     safe(() => fetchJSON(`${srBase}/api/students/${id}/grades`)),
-    REGISTRY['enrollment'].baseUrl
-      ? safe(() => fetchJSON(`${REGISTRY['enrollment'].baseUrl}/api/students/${id}/schedule`))
-      : { ok: false, error: 'not-configured' },
-    REGISTRY['finance'].baseUrl
-      ? safe(() => fetchJSON(`${REGISTRY['finance'].baseUrl}/api/students/${id}/balance`))
-      : { ok: false, error: 'not-configured' },
-    REGISTRY['lms'].baseUrl
-      ? safe(() => fetchJSON(`${REGISTRY['lms'].baseUrl}/api/students/${id}/courses`))
-      : { ok: false, error: 'not-configured' },
+    enrollment ? safe(() => fetchJSON(`${enrollment.baseUrl}/api/students/${id}/schedule`)) : { ok: false, error: 'not-configured' },
+    finance ? safe(() => fetchJSON(`${finance.baseUrl}/api/students/${id}/balance`)) : { ok: false, error: 'not-configured' },
+    lms ? safe(() => fetchJSON(`${lms.baseUrl}/api/students/${id}/courses`)) : { ok: false, error: 'not-configured' },
   ]);
 
   if (!profile.ok) return res.status(404).json({ error: 'Student not found or Student Records offline' });
@@ -232,12 +258,12 @@ app.get('/hub/students/:id/full', requireOwnRecord, async (req, res) => {
     profile: profile.data,
     grades: grades.ok ? grades.data : [],
     gradesError: grades.ok ? null : grades.error,
-    enrollment: enrollment.ok ? enrollment.data : null,
-    enrollmentError: enrollment.ok ? null : enrollment.error,
-    finance: finance.ok ? finance.data : null,
-    financeError: finance.ok ? null : finance.error,
-    lms: lms.ok ? lms.data : null,
-    lmsError: lms.ok ? null : lms.error,
+    enrollment: enrollmentData.ok ? enrollmentData.data : null,
+    enrollmentError: enrollmentData.ok ? null : enrollmentData.error,
+    finance: financeData.ok ? financeData.data : null,
+    financeError: financeData.ok ? null : financeData.error,
+    lms: lmsData.ok ? lmsData.data : null,
+    lmsError: lmsData.ok ? null : lmsData.error,
   });
 });
 
