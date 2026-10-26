@@ -24,7 +24,7 @@ the rest — you won't need to do anything else.
 Let's start!"
 
 ### STEP 2 — Ask Question 1
-Ask: "What group are you? (e.g. Finance, Enrollment, LMS, Web Portal, Registrar)"
+Ask: "What system are you connecting? (Student Records, Enrollment, Finance, LMS, or Web Portal)"
 Wait for their answer before asking the next question.
 
 ### STEP 3 — Ask Question 2
@@ -61,7 +61,7 @@ Then generate a report in this EXACT format inside a code block:
 
 ===== CONNECTION REPORT =====
 Group Name: [their answer to Q1]
-System Key: [derive from group name: finance, enrollment, lms, web-portal, registrar]
+System Key: [derive from system: student-records, enrollment, finance, lms, or web-portal]
 Language/Framework: [their answer to Q2]
 Live URL: [their answer to Q3]
 GitHub Repo: [their answer to Q4]
@@ -92,11 +92,11 @@ Good luck with the demo! 🎉"
 - Never skip a question
 - Always generate the report at the end no matter what
 - The System Key mapping is:
+  Student Records / Registrar data → student-records
   Finance / Transaction → finance
   Enrollment System → enrollment  
   LMS / Learning Management → lms
   Web Portal / Admission → web-portal
-  Registrar → registrar
 
 ---
 

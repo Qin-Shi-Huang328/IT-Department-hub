@@ -218,6 +218,12 @@
   const refreshBtn = document.getElementById('refreshBtn');
   const lastUpdated = document.getElementById('lastUpdated');
 
+  function escapeHTML(value) {
+    return String(value ?? '').replace(/[&<>"']/g, character => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[character]);
+  }
+
   // Track which rows are open so they stay open after a refresh
   const openRows = new Set();
 
@@ -226,6 +232,8 @@
     try {
       const res = await fetch(`${HUB_BASE_URL}/hub/status`);
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `Hub returned HTTP ${res.status}`);
+      if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('Hub returned an invalid status response');
       const entries = Object.entries(data);
       const now = new Date();
 
@@ -278,7 +286,7 @@
               <div class="detail-value">${now.toLocaleTimeString()}</div>
             </div>
             <div class="error-box">
-              <strong>Reason:</strong> ${sys.error || 'No response from system — it may be sleeping (Render free tier) or its database has paused (Supabase free tier).'}<br><br>
+              <strong>Reason:</strong> ${escapeHTML(sys.error || 'No response from system — it may be sleeping (Render free tier) or its database has paused (Supabase free tier).')}<br><br>
               <strong>What to do:</strong><br>
               &bull; If this just started: wait 30&ndash;60 seconds and refresh — Render services sleep after 15 min idle and take time to wake up.<br>
               &bull; If it stays red: check if the system's Supabase project has auto-paused at supabase.com/dashboard and resume it.<br>
@@ -288,15 +296,15 @@
         }
 
         return `
-          <div class="system-row ${isOpen ? 'open' : ''}" data-key="${key}">
-            <div class="system-row-top" onclick="toggleRow('${key}')">
+          <div class="system-row ${isOpen ? 'open' : ''}" data-key="${escapeHTML(key)}">
+            <div class="system-row-top" onclick="toggleRow('${escapeHTML(key)}')">
               <div class="system-name-wrap">
                 <span class="chevron">&#9660;</span>
-                <span class="system-name">${sys.name || key}</span>
+                <span class="system-name">${escapeHTML(sys.name || key)}</span>
               </div>
               <div class="status-right">
-                <span class="status-pill ${sys.status}">
-                  <span class="dot"></span>${sys.status}
+                <span class="status-pill ${['up', 'down', 'not-configured'].includes(sys.status) ? sys.status : 'down'}">
+                  <span class="dot"></span>${escapeHTML(sys.status || 'unknown')}
                 </span>
                 ${isUp ? `<span class="response-time">${sys.responseTimeMs} ms</span>` : ''}
               </div>
@@ -309,7 +317,10 @@
       lastUpdated.textContent = `Last updated: ${now.toLocaleTimeString()}`;
 
     } catch (err) {
-      statusList.innerHTML = `<div class="error-state">Could not reach the Admin Hub: ${err.message}</div>`;
+      const message = document.createElement('div');
+      message.className = 'error-state';
+      message.textContent = `Could not reach the Admin Hub: ${err.message}`;
+      statusList.replaceChildren(message);
     } finally {
       refreshBtn.disabled = false;
     }

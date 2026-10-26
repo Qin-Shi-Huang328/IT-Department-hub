@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Hub — Dashboard</title>
+<style>
+:root {
+  --navy: #0a1a2f;
+  --navy-light: #12233d;
+  --navy-lighter: #1a2f4d;
+  --gold: #c9a227;
+  --gold-light: #e0c158;
+  --cream: #f4efe2;
+  --text-muted: #9aa8bd;
+  --up-green: #3ecf6e;
+  --down-red: #e0524f;
+  --paper: #f7f5f0;
+  --paper-line: #e3ded2;
+  --ink: #232323;
+  --ink-soft: #6b6b6b;
+  --ok: #2e6b46;
+  --danger: #a13d3d;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Georgia, 'Times New Roman', serif; background: var(--navy); color: var(--cream); min-height: 100vh; }
+
+#loginScreen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+.login-box {
+  background: var(--navy-light); border: 1px solid var(--gold);
+  border-top: 4px solid var(--gold); border-radius: 6px;
+  padding: 36px 40px; width: 100%; max-width: 400px;
+}
+.login-box h1 { color: var(--gold-light); font-size: 22px; letter-spacing: 1px; margin-bottom: 4px; }
+.login-box p { color: var(--text-muted); font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 28px; }
+.login-field { margin-bottom: 16px; }
+.login-field label { display: block; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.login-field input {
+  width: 100%; padding: 10px 12px;
+  background: var(--navy); border: 1px solid var(--navy-lighter);
+  color: var(--cream); font-family: inherit; font-size: 14px; border-radius: 4px;
+}
+.login-field input:focus { outline: none; border-color: var(--gold); }
+.login-btn {
+  width: 100%; padding: 11px; background: var(--gold); color: var(--navy);
+  border: none; border-radius: 4px; font-family: inherit; font-size: 14px;
+  font-weight: bold; cursor: pointer; letter-spacing: 0.5px; margin-top: 8px;
+}
+.login-btn:hover { background: var(--gold-light); }
+.login-error {
+  background: rgba(224,82,79,0.12); color: var(--down-red);
+  padding: 9px 12px; font-size: 13px; border-radius: 4px;
+  margin-top: 14px; display: none;
+}
+.login-error.show { display: block; }
+
+#dashboard { display: none; }
+header {
+  background: var(--navy-light); border-bottom: 2px solid var(--gold);
+  padding: 16px 32px; display: flex; align-items: center; justify-content: space-between;
+}
+.brand h1 { color: var(--gold-light); font-size: 20px; letter-spacing: 1.5px; }
+.brand p { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+.header-right { display: flex; align-items: center; gap: 14px; }
+.admin-badge {
+  background: var(--navy-lighter); color: var(--gold-light);
+  font-size: 11px; padding: 4px 12px; border-radius: 20px;
+  letter-spacing: 0.5px; text-transform: uppercase;
+}
+.logout-btn {
+  background: transparent; border: 1px solid var(--text-muted);
+  color: var(--text-muted); padding: 6px 14px; border-radius: 4px;
+  font-family: inherit; font-size: 12px; cursor: pointer; letter-spacing: 0.5px;
+}
+.logout-btn:hover { border-color: var(--down-red); color: var(--down-red); }
+
+/* Tabs */
+.main-tabs {
+  display: flex; gap: 0;
+  background: var(--navy-light);
+  border-bottom: 2px solid var(--navy-lighter);
+  padding: 0 32px;
+}
+.main-tab {
+  padding: 14px 24px; font-family: inherit; font-size: 13px;
+  color: var(--text-muted); background: none; border: none;
+  border-bottom: 3px solid transparent; margin-bottom: -2px;
+  cursor: pointer; letter-spacing: 0.5px;
+}
+.main-tab:hover { color: var(--cream); }
+.main-tab.active { color: var(--gold-light); border-bottom: 3px solid var(--gold); }
+
+main { max-width: 1100px; margin: 0 auto; padding: 28px 24px 80px; }
+
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+.stat-card {
+  background: var(--navy-light); border: 1px solid var(--navy-lighter);
+  border-radius: 6px; padding: 18px 22px;
+}
+.stat-card .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-card .stat-value { font-size: 32px; color: var(--gold-light); font-weight: bold; margin-top: 6px; }
+.stat-card .stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+.section-card {
+  background: var(--navy-light); border: 1px solid var(--navy-lighter);
+  border-radius: 6px; padding: 20px 24px; margin-bottom: 24px;
+}
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--navy-lighter);
+}
+.section-header h2 { color: var(--gold-light); font-size: 16px; letter-spacing: 0.5px; }
+.toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.search-input {
+  flex: 1; min-width: 200px; background: var(--navy);
+  border: 1px solid var(--navy-lighter); color: var(--cream);
+  padding: 9px 13px; border-radius: 4px; font-family: inherit; font-size: 13px;
+}
+.search-input:focus { outline: none; border-color: var(--gold); }
+.filter-select {
+  background: var(--navy); border: 1px solid var(--navy-lighter);
+  color: var(--cream); padding: 9px 12px; border-radius: 4px;
+  font-family: inherit; font-size: 13px; cursor: pointer;
+}
+.export-btn {
+  background: var(--navy-lighter); color: var(--gold-light);
+  border: 1px solid var(--gold); padding: 9px 16px; border-radius: 4px;
+  font-family: inherit; font-size: 12px; cursor: pointer;
+  letter-spacing: 0.3px; white-space: nowrap;
+}
+.export-btn:hover { background: var(--gold); color: var(--navy); }
+.add-btn {
+  background: var(--gold); color: var(--navy);
+  border: none; padding: 9px 16px; border-radius: 4px;
+  font-family: inherit; font-size: 12px; cursor: pointer;
+  letter-spacing: 0.3px; white-space: nowrap; font-weight: bold;
+}
+.add-btn:hover { background: var(--gold-light); }
+
+.data-table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 13px; }
+.data-table th {
+  text-align: left; background: var(--navy); color: var(--gold-light);
+  padding: 10px 12px; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.data-table td { padding: 11px 12px; border-bottom: 1px solid var(--navy-lighter); vertical-align: middle; }
+.data-table tr:hover td { background: rgba(255,255,255,0.03); }
+.data-table .mono { font-family: 'Courier New', monospace; color: var(--text-muted); font-size: 12px; }
+.badge {
+  display: inline-block; padding: 2px 8px; font-size: 10px;
+  letter-spacing: 0.03em; border-radius: 2px; text-transform: uppercase;
+}
+.badge.enrolled { background: rgba(46,107,70,0.2); color: #6fbf8b; }
+.badge.not-enrolled { background: rgba(161,61,61,0.2); color: #e08080; }
+.badge.irregular { background: rgba(138,106,31,0.2); color: #d9a441; }
+.badge.admin { background: rgba(201,162,39,0.2); color: var(--gold-light); }
+.badge.staff { background: rgba(154,168,189,0.2); color: var(--text-muted); }
+.view-btn {
+  background: none; border: 1px solid var(--navy-lighter);
+  color: var(--text-muted); padding: 4px 10px; border-radius: 3px;
+  font-family: inherit; font-size: 11px; cursor: pointer;
+}
+.view-btn:hover { border-color: var(--gold); color: var(--gold-light); }
+.del-btn {
+  background: none; border: 1px solid var(--navy-lighter);
+  color: var(--down-red); padding: 4px 10px; border-radius: 3px;
+  font-family: inherit; font-size: 11px; cursor: pointer; margin-left: 6px;
+}
+.del-btn:hover { border-color: var(--down-red); background: rgba(224,82,79,0.1); }
+.empty-row td { text-align: center; padding: 40px; color: var(--text-muted); }
+
+/* Modal */
+.modal-backdrop {
+  display: none; position: fixed; inset: 0;
+  background: rgba(5,12,25,0.75);
+  align-items: center; justify-content: center; padding: 20px; z-index: 20;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+  background: var(--navy-light); border: 1px solid var(--gold);
+  border-top: 3px solid var(--gold); border-radius: 6px;
+  width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto;
+  padding: 26px 28px;
+}
+.modal h2 { color: var(--gold-light); font-size: 18px; margin-bottom: 4px; }
+.modal .modal-sub { color: var(--text-muted); font-size: 12px; margin-bottom: 20px; }
+.profile-grid {
+  display: grid; grid-template-columns: 150px 1fr;
+  row-gap: 12px; column-gap: 12px; margin-bottom: 20px;
+}
+.profile-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; padding-top: 1px; }
+.profile-value { font-size: 14px; color: var(--cream); }
+.grades-section { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--navy-lighter); }
+.grades-section h3 { color: var(--gold-light); font-size: 13px; letter-spacing: 0.5px; margin-bottom: 10px; }
+.grades-mini { width: 100%; border-collapse: collapse; font-size: 12px; }
+.grades-mini th { background: var(--navy); color: var(--text-muted); padding: 7px 9px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; }
+.grades-mini td { padding: 8px 9px; border-bottom: 1px solid var(--navy-lighter); color: var(--cream); }
+.grades-empty-msg { color: var(--text-muted); font-size: 13px; padding: 12px 0; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--navy-lighter); }
+.close-btn {
+  background: var(--navy-lighter); color: var(--cream);
+  border: 1px solid var(--navy-lighter); padding: 8px 20px;
+  border-radius: 4px; font-family: inherit; font-size: 13px; cursor: pointer;
+}
+.close-btn:hover { border-color: var(--gold); color: var(--gold-light); }
+.loading { color: var(--text-muted); font-size: 13px; padding: 20px 0; }
+.modal-field { margin-bottom: 14px; }
+.modal-field label { display: block; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.modal-field input, .modal-field select {
+  width: 100%; padding: 10px 12px; background: var(--navy);
+  border: 1px solid var(--navy-lighter); color: var(--cream);
+  font-family: inherit; font-size: 14px; border-radius: 4px;
+}
+.modal-field input:focus, .modal-field select:focus { outline: none; border-color: var(--gold); }
+.save-btn {
+  background: var(--gold); color: var(--navy); border: none;
+  padding: 8px 20px; border-radius: 4px; font-family: inherit;
+  font-size: 13px; cursor: pointer; font-weight: bold;
+}
+.save-btn:hover { background: var(--gold-light); }
+.form-error { color: var(--down-red); font-size: 12px; margin-top: 10px; display: none; }
+.form-error.show { display: block; }
+
+.pagination { display: flex; gap: 8px; align-items: center; margin-top: 16px; justify-content: flex-end; }
+.page-btn {
+  background: var(--navy); border: 1px solid var(--navy-lighter);
+  color: var(--text-muted); padding: 5px 12px; border-radius: 3px;
+  font-family: inherit; font-size: 12px; cursor: pointer;
+}
+.page-btn:hover { border-color: var(--gold); color: var(--gold-light); }
+.page-btn.active { background: var(--gold); color: var(--navy); border-color: var(--gold); font-weight: bold; }
+.page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.page-info { font-size: 12px; color: var(--text-muted); }
+
+footer {
+  text-align: center; color: var(--text-muted); font-size: 11px;
+  padding: 20px; letter-spacing: 0.5px; border-top: 1px solid var(--navy-lighter);
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <h1>Admin Hub</h1>
+    <p>Group 3 &middot; Administrator Access Only</p>
+    <div class="login-field">
+      <label>Administrator Employee ID</label>
+      <input type="text" id="loginUser" placeholder="Enter admin employee ID" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="Enter password">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Sign In</button>
+    <div class="login-error" id="loginError">Incorrect username or password.</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <header>
+    <div class="brand">
+      <h1>Admin Hub</h1>
+      <p>Group 3 &middot; Administrator Dashboard</p>
+    </div>
+    <div class="header-right">
+      <span class="admin-badge">&#128274; Admin</span>
+      <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+    </div>
+  </header>
+
+  <div class="main-tabs">
+    <button class="main-tab active" id="tabStudents" onclick="switchTab('students')">Students</button>
+    <button class="main-tab" id="tabEmployees" onclick="switchTab('employees')">Employees</button>
+  </div>
+
+  <main>
+    <!-- STUDENTS TAB -->
+    <div id="studentsTab">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Total Students</div>
+          <div class="stat-value" id="statTotal">—</div>
+          <div class="stat-sub">registered in the system</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Enrolled</div>
+          <div class="stat-value" id="statEnrolled">—</div>
+          <div class="stat-sub">active enrollment status</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Not Enrolled / Irregular</div>
+          <div class="stat-value" id="statOther">—</div>
+          <div class="stat-sub">pending or irregular</div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">
+          <h2>Student Records</h2>
+          <div class="toolbar">
+            <input type="text" class="search-input" id="searchInput" placeholder="Search by name or student number…">
+            <select class="filter-select" id="statusFilter">
+              <option value="">All Status</option>
+              <option value="enrolled">Enrolled</option>
+              <option value="not-enrolled">Not Enrolled</option>
+              <option value="irregular">Irregular</option>
+            </select>
+            <button class="add-btn" onclick="openAddStudent()">+ Add Student</button>
+            <button class="export-btn" onclick="exportExcel()">&#8595; Export Excel</button>
+            <button class="export-btn" onclick="exportPDF()">&#8595; Export PDF</button>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Student No.</th><th>Full Name</th><th>Year</th><th>Section</th><th>Status</th><th>Action</th></tr>
+          </thead>
+          <tbody id="studentBody">
+            <tr class="empty-row"><td colspan="6">Loading students…</td></tr>
+          </tbody>
+        </table>
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </div>
+
+    <!-- EMPLOYEES TAB -->
+    <div id="employeesTab" style="display:none;">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Total Employees</div>
+          <div class="stat-value" id="statEmpTotal">—</div>
+          <div class="stat-sub">registered in the system</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Admins</div>
+          <div class="stat-value" id="statEmpAdmin">—</div>
+          <div class="stat-sub">admin role</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Staff</div>
+          <div class="stat-value" id="statEmpStaff">—</div>
+          <div class="stat-sub">staff role</div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">
+          <h2>Employee Records</h2>
+          <div class="toolbar">
+            <input type="text" class="search-input" id="empSearchInput" placeholder="Search by name or employee ID…">
+            <button class="add-btn" onclick="openAddEmployee()">+ Add Employee</button>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Employee ID</th><th>Full Name</th><th>Role</th><th>Password Set</th><th>Action</th></tr>
+          </thead>
+          <tbody id="employeeBody">
+            <tr class="empty-row"><td colspan="5">Loading employees…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <footer>Admin Hub — Group 3 &middot; Confidential &middot; Authorized Access Only</footer>
+</div>
+
+<!-- Add Student Modal -->
+<div class="modal-backdrop" id="studentModal">
+  <div class="modal">
+    <h2>Add Student</h2>
+    <div class="modal-sub">Create a replacement Student Records account.</div>
+    <div class="modal-field"><label>Student ID</label><input id="newStudentId" autocomplete="off"></div>
+    <div class="modal-field"><label>Full Name</label><input id="newStudentName" autocomplete="name"></div>
+    <div class="modal-field"><label>Year Level</label><input id="newStudentYear"></div>
+    <div class="modal-field"><label>Section</label><input id="newStudentSection"></div>
+    <div class="modal-field"><label>Email</label><input id="newStudentEmail" type="email" autocomplete="email"></div>
+    <div class="modal-field"><label>Contact Number</label><input id="newStudentContact" autocomplete="tel"></div>
+    <div class="modal-field"><label>Address</label><input id="newStudentAddress" autocomplete="street-address"></div>
+    <div class="modal-field">
+      <label>Enrollment Status</label>
+      <select id="newStudentStatus">
+        <option value="not-enrolled">Not Enrolled</option>
+        <option value="enrolled">Enrolled</option>
+        <option value="irregular">Irregular</option>
+      </select>
+    </div>
+    <div class="modal-field"><label>Temporary Password</label><input id="newStudentPassword" type="password" autocomplete="new-password" placeholder="At least 8 characters"></div>
+    <div class="form-error" id="studentFormError"></div>
+    <div class="modal-footer">
+      <button class="close-btn" onclick="closeAddStudent()">Cancel</button>
+      <button class="save-btn" id="studentSaveBtn" onclick="saveStudent()">Create Student</button>
+    </div>
+  </div>
+</div>
+
+<!-- Student Detail Modal -->
+<div class="modal-backdrop" id="detailModal">
+  <div class="modal">
+    <h2 id="detailName">Student Detail</h2>
+    <div class="modal-sub" id="detailId"></div>
+    <div id="detailBody"><div class="loading">Loading…</div></div>
+    <div class="modal-footer">
+      <button class="close-btn" onclick="closeDetail()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Reset Employee Modal -->
+<div class="modal-backdrop" id="empModal">
+  <div class="modal">
+    <h2 id="empModalTitle">Add Employee</h2>
+    <div class="modal-sub" id="empModalSub">Fill in the details below.</div>
+    <div id="empModalBody">
+      <div class="modal-field">
+        <label>Employee ID</label>
+        <input type="text" id="empId" placeholder="e.g. EMP-002">
+      </div>
+      <div class="modal-field">
+        <label>Full Name</label>
+        <input type="text" id="empName" placeholder="e.g. Juan Dela Cruz">
+      </div>
+      <div class="modal-field">
+        <label>Role</label>
+        <select id="empRole">
+          <option value="staff">Staff</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label>Password</label>
+        <input type="password" id="empPassword" placeholder="At least 8 characters">
+      </div>
+      <div class="form-error" id="empFormError"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="close-btn" onclick="closeEmpModal()">Cancel</button>
+      <button class="save-btn" id="empSaveBtn" onclick="saveEmployee()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="modal-backdrop" id="resetModal">
+  <div class="modal">
+    <h2>Reset Password</h2>
+    <div class="modal-sub" id="resetModalSub"></div>
+    <div class="modal-field">
+      <label>New Password</label>
+      <input type="password" id="resetPassword" placeholder="At least 8 characters">
+    </div>
+    <div class="form-error" id="resetFormError"></div>
+    <div class="modal-footer">
+      <button class="close-btn" onclick="closeResetModal()">Cancel</button>
+      <button class="save-btn" onclick="doResetPassword()">Reset Password</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const API_BASE = window.location.protocol === 'file:' ? 'https://it-department-hub.onrender.com' : window.location.origin;
+const PAGE_SIZE = 10;
+const registrarMode = window.location.pathname.replace(/\/$/, '') === '/registrar';
+
+if (registrarMode) {
+  document.title = 'Student Registrar — IT Department';
+  document.querySelector('#loginScreen h1').textContent = 'Student Registrar';
+  document.querySelector('#loginScreen .login-box > p').textContent = 'Administrator employee access only';
+  document.querySelector('#dashboard .brand h1').textContent = 'Student Registrar';
+  document.querySelector('#dashboard .brand p').textContent = 'IT Department · Student Records';
+  document.querySelector('#dashboard .admin-badge').textContent = '🔒 Registrar';
+  document.getElementById('tabEmployees').hidden = true;
+  document.getElementById('tabStudents').textContent = 'Student Records';
+  document.querySelector('#dashboard footer').textContent = 'Student Registrar · Authorized staff only';
+}
+
+let allStudents = [], filteredStudents = [], currentPage = 1, searchTimer = null;
+let allEmployees = [], filteredEmployees = [];
+let resetTargetId = null;
+
+function escapeHTML(value) {
+  return String(value ?? '').replace(/[&<>"']/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[character]);
+}
+
+async function hubRequest(path, options = {}) {
+  const headers = new Headers(options.headers || {});
+  const token = sessionStorage.getItem('adminToken');
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+  if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+  const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || `Request failed (HTTP ${response.status})`);
+  return data;
+}
+
+// ── AUTH ──
+async function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const button = document.querySelector('#loginScreen .login-btn');
+  const error = document.getElementById('loginError');
+  error.classList.remove('show');
+  button.disabled = true;
+  try {
+    const result = await hubRequest('/hub/admin/login', {
+      method: 'POST',
+      body: JSON.stringify({ username: u, password: p })
+    });
+    sessionStorage.setItem('adminToken', result.token);
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    await loadStudents();
+  } catch (err) {
+    error.textContent = err.message;
+    error.classList.add('show');
+  } finally {
+    button.disabled = false;
+  }
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('loginScreen').style.display !== 'none') doLogin();
+});
+function doLogout() {
+  sessionStorage.removeItem('adminToken');
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginError').classList.remove('show');
+  allStudents = []; filteredStudents = []; allEmployees = []; filteredEmployees = [];
+}
+
+// ── TABS ──
+function switchTab(tab) {
+  document.getElementById('tabStudents').classList.toggle('active', tab === 'students');
+  document.getElementById('tabEmployees').classList.toggle('active', tab === 'employees');
+  document.getElementById('studentsTab').style.display = tab === 'students' ? 'block' : 'none';
+  document.getElementById('employeesTab').style.display = tab === 'employees' ? 'block' : 'none';
+  if (tab === 'employees' && allEmployees.length === 0) loadEmployees();
+}
+
+// ── STUDENTS ──
+async function loadStudents() {
+  try {
+    allStudents = await hubRequest('/hub/admin/students');
+    if (!Array.isArray(allStudents)) throw new Error('Student Records returned an invalid student list');
+    updateStats();
+    applyFilters();
+  } catch (err) {
+    document.getElementById('studentBody').innerHTML = `<tr class="empty-row"><td colspan="6">${escapeHTML(err.message)}</td></tr>`;
+  }
+}
+
+function openAddStudent() {
+  document.getElementById('studentFormError').classList.remove('show');
+  document.getElementById('studentModal').classList.add('open');
+}
+
+function closeAddStudent() {
+  document.getElementById('studentModal').classList.remove('open');
+}
+
+async function saveStudent() {
+  const error = document.getElementById('studentFormError');
+  const button = document.getElementById('studentSaveBtn');
+  const student = {
+    student_id: document.getElementById('newStudentId').value.trim(),
+    full_name: document.getElementById('newStudentName').value.trim(),
+    year_level: document.getElementById('newStudentYear').value.trim(),
+    section: document.getElementById('newStudentSection').value.trim(),
+    email: document.getElementById('newStudentEmail').value.trim(),
+    contact_number: document.getElementById('newStudentContact').value.trim(),
+    address: document.getElementById('newStudentAddress').value.trim(),
+    enrollment_status: document.getElementById('newStudentStatus').value,
+    password: document.getElementById('newStudentPassword').value
+  };
+  if (!student.student_id || !student.full_name || student.password.length < 8) {
+    error.textContent = 'Student ID, full name, and a password of at least 8 characters are required.';
+    error.classList.add('show');
+    return;
+  }
+  button.disabled = true;
+  error.classList.remove('show');
+  try {
+    await hubRequest('/hub/admin/students', { method: 'POST', body: JSON.stringify(student) });
+    document.getElementById('newStudentPassword').value = '';
+    closeAddStudent();
+    allStudents = [];
+    await loadStudents();
+  } catch (err) {
+    error.textContent = err.message;
+    error.classList.add('show');
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function updateStats() {
+  const total = allStudents.length;
+  const enrolled = allStudents.filter(s => s.enrollment_status === 'enrolled').length;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statEnrolled').textContent = enrolled;
+  document.getElementById('statOther').textContent = total - enrolled;
+}
+
+function applyFilters() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const status = document.getElementById('statusFilter').value;
+  filteredStudents = allStudents.filter(s => {
+    const matchQ = !q || String(s.full_name || '').toLowerCase().includes(q) || String(s.student_id || '').toLowerCase().includes(q);
+    const matchStatus = !status || s.enrollment_status === status;
+    return matchQ && matchStatus;
+  });
+  currentPage = 1;
+  renderTable();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('studentBody');
+  if (filteredStudents.length === 0) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">No students match your search.</td></tr>';
+    document.getElementById('pagination').innerHTML = '';
+    return;
+  }
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const page = filteredStudents.slice(start, start + PAGE_SIZE);
+  tbody.innerHTML = page.map(s => `
+    <tr>
+      <td class="mono">${escapeHTML(s.student_id)}</td>
+      <td>${escapeHTML(s.full_name)}</td>
+      <td>${escapeHTML(s.year_level ?? '—')}</td>
+      <td>${escapeHTML(s.section ?? '—')}</td>
+      <td><span class="badge ${badgeClass(s.enrollment_status)}">${escapeHTML(s.enrollment_status ?? 'unknown')}</span></td>
+      <td><button class="view-btn" data-action="view-student" data-student-id="${escapeHTML(s.student_id)}">View</button></td>
+    </tr>`).join('');
+  renderPagination();
+}
+
+document.getElementById('studentBody').addEventListener('click', event => {
+  const button = event.target.closest('[data-action="view-student"]');
+  if (!button) return;
+  const student = allStudents.find(item => String(item.student_id) === button.dataset.studentId);
+  if (student) openDetail(student.student_id, student.full_name);
+});
+
+function renderPagination() {
+  const total = Math.ceil(filteredStudents.length / PAGE_SIZE);
+  const pg = document.getElementById('pagination');
+  if (total <= 1) { pg.innerHTML = ''; return; }
+  let html = `<span class="page-info">Page ${currentPage} of ${total}</span>`;
+  html += `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>&#8249; Prev</button>`;
+  for (let i = 1; i <= total; i++) html += `<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+  html += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===total?'disabled':''}>Next &#8250;</button>`;
+  pg.innerHTML = html;
+}
+
+function goPage(p) {
+  const total = Math.ceil(filteredStudents.length / PAGE_SIZE);
+  if (p < 1 || p > total) return;
+  currentPage = p; renderTable();
+}
+
+function badgeClass(status) {
+  if (status === 'enrolled') return 'enrolled';
+  if (status === 'not-enrolled') return 'not-enrolled';
+  return 'irregular';
+}
+
+document.getElementById('searchInput').addEventListener('input', () => {
+  clearTimeout(searchTimer); searchTimer = setTimeout(applyFilters, 280);
+});
+document.getElementById('statusFilter').addEventListener('change', applyFilters);
+
+async function openDetail(id, name) {
+  document.getElementById('detailName').textContent = name;
+  document.getElementById('detailId').textContent = `Student No. ${id}`;
+  document.getElementById('detailBody').innerHTML = '<div class="loading">Loading full profile…</div>';
+  document.getElementById('detailModal').classList.add('open');
+  try {
+    const [profileRes, gradesRes] = await Promise.all([
+      hubRequest(`/hub/admin/students/${encodeURIComponent(id)}/profile`),
+      hubRequest(`/hub/admin/students/${encodeURIComponent(id)}/grades`)
+    ]);
+    const profile = profileRes;
+    const grades = gradesRes;
+    const fields = [
+      ['Student ID', profile.student_id], ['Full Name', profile.full_name],
+      ['Year Level', profile.year_level ?? '—'], ['Section', profile.section ?? '—'],
+      ['Contact No.', profile.contact_number ?? '—'], ['Email', profile.email ?? '—'],
+      ['Address', profile.address ?? '—'], ['Enrollment Status', profile.enrollment_status ?? '—'],
+    ];
+    let gradesHtml = '';
+    if (!Array.isArray(grades) || grades.length === 0) {
+      gradesHtml = '<div class="grades-empty-msg">No grades on file yet.</div>';
+    } else {
+      gradesHtml = `<table class="grades-mini">
+        <thead><tr><th>Subject</th><th>Name</th><th>S.Y.</th><th>Sem</th><th>Grade</th><th>Remarks</th></tr></thead>
+        <tbody>${grades.map(g => `<tr><td>${escapeHTML(g.subject_code??'—')}</td><td>${escapeHTML(g.subject_name??'—')}</td><td>${escapeHTML(g.school_year??'—')}</td><td>${escapeHTML(g.semester??'—')}</td><td>${escapeHTML(g.grade??'—')}</td><td>${escapeHTML(g.remarks??'—')}</td></tr>`).join('')}</tbody>
+      </table>`;
+    }
+    document.getElementById('detailBody').innerHTML = `
+      <div class="profile-grid">${fields.map(([l,v]) => `<div class="profile-label">${escapeHTML(l)}</div><div class="profile-value">${escapeHTML(v)}</div>`).join('')}</div>
+      <div class="grades-section"><h3>Grades</h3>${gradesHtml}</div>`;
+  } catch (err) {
+    document.getElementById('detailBody').textContent = `Could not load student detail: ${err.message}`;
+  }
+}
+
+function closeDetail() { document.getElementById('detailModal').classList.remove('open'); }
+document.getElementById('detailModal').addEventListener('click', e => { if (e.target === document.getElementById('detailModal')) closeDetail(); });
+
+// ── EMPLOYEES ──
+async function loadEmployees() {
+  try {
+    allEmployees = await hubRequest('/hub/admin/employees');
+    if (!Array.isArray(allEmployees)) throw new Error('Student Records returned an invalid employee list');
+    updateEmpStats();
+    renderEmployees();
+  } catch (err) {
+    document.getElementById('employeeBody').innerHTML = `<tr class="empty-row"><td colspan="5">${escapeHTML(err.message)}</td></tr>`;
+  }
+}
+
+function updateEmpStats() {
+  document.getElementById('statEmpTotal').textContent = allEmployees.length;
+  document.getElementById('statEmpAdmin').textContent = allEmployees.filter(e => e.role === 'admin').length;
+  document.getElementById('statEmpStaff').textContent = allEmployees.filter(e => e.role === 'staff').length;
+}
+
+function renderEmployees() {
+  const q = document.getElementById('empSearchInput').value.trim().toLowerCase();
+  filteredEmployees = allEmployees.filter(e =>
+    !q || String(e.full_name || '').toLowerCase().includes(q) || String(e.employee_id || '').toLowerCase().includes(q)
+  );
+  const tbody = document.getElementById('employeeBody');
+  if (filteredEmployees.length === 0) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No employees found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filteredEmployees.map(e => `
+    <tr>
+      <td class="mono">${escapeHTML(e.employee_id)}</td>
+      <td>${escapeHTML(e.full_name)}</td>
+      <td><span class="badge ${e.role === 'admin' ? 'admin' : 'staff'}">${escapeHTML(e.role)}</span></td>
+      <td>${e.has_password ? '<span style="color:var(--up-green)">&#10003; Set</span>' : '<span style="color:var(--down-red)">&#10007; Not set</span>'}</td>
+      <td>
+        <button class="view-btn" data-action="reset-password" data-employee-id="${escapeHTML(e.employee_id)}">Reset Password</button>
+        <button class="del-btn" data-action="delete-employee" data-employee-id="${escapeHTML(e.employee_id)}">Delete</button>
+      </td>
+    </tr>`).join('');
+}
+
+document.getElementById('employeeBody').addEventListener('click', event => {
+  const button = event.target.closest('[data-action]');
+  if (!button) return;
+  const employee = allEmployees.find(item => String(item.employee_id) === button.dataset.employeeId);
+  if (!employee) return;
+  if (button.dataset.action === 'reset-password') openResetPassword(employee.employee_id, employee.full_name);
+  if (button.dataset.action === 'delete-employee') deleteEmployee(employee.employee_id, employee.full_name);
+});
+
+document.getElementById('empSearchInput').addEventListener('input', renderEmployees);
+
+function openAddEmployee() {
+  document.getElementById('empModalTitle').textContent = 'Add Employee';
+  document.getElementById('empModalSub').textContent = 'Fill in the details to add a new employee.';
+  document.getElementById('empId').value = '';
+  document.getElementById('empId').disabled = false;
+  document.getElementById('empName').value = '';
+  document.getElementById('empRole').value = 'staff';
+  document.getElementById('empPassword').value = '';
+  document.getElementById('empFormError').classList.remove('show');
+  document.getElementById('empModal').classList.add('open');
+}
+
+function closeEmpModal() { document.getElementById('empModal').classList.remove('open'); }
+
+async function saveEmployee() {
+  const id = document.getElementById('empId').value.trim();
+  const name = document.getElementById('empName').value.trim();
+  const role = document.getElementById('empRole').value;
+  const pw = document.getElementById('empPassword').value;
+  const errDiv = document.getElementById('empFormError');
+
+  if (!id || !name || !pw) { errDiv.textContent = 'All fields are required.'; errDiv.classList.add('show'); return; }
+  if (pw.length < 8) { errDiv.textContent = 'Password must be at least 8 characters.'; errDiv.classList.add('show'); return; }
+
+  const btn = document.getElementById('empSaveBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  try {
+    await hubRequest('/hub/admin/employees', {
+      method: 'POST',
+      body: JSON.stringify({ employee_id: id, full_name: name, role, password: pw })
+    });
+
+    closeEmpModal();
+    allEmployees = [];
+    await loadEmployees();
+  } catch (err) {
+    errDiv.textContent = err.message; errDiv.classList.add('show');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save';
+  }
+}
+
+async function deleteEmployee(id, name) {
+  if (!confirm(`Delete employee ${name} (${id})? This cannot be undone.`)) return;
+  try {
+    await hubRequest(`/hub/admin/employees/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    allEmployees = [];
+    await loadEmployees();
+  } catch (err) {
+    alert('Delete failed: ' + err.message);
+  }
+}
+
+function openResetPassword(id, name) {
+  resetTargetId = id;
+  document.getElementById('resetModalSub').textContent = `Reset password for ${name} (${id})`;
+  document.getElementById('resetPassword').value = '';
+  document.getElementById('resetFormError').classList.remove('show');
+  document.getElementById('resetModal').classList.add('open');
+}
+
+function closeResetModal() { document.getElementById('resetModal').classList.remove('open'); }
+
+async function doResetPassword() {
+  const pw = document.getElementById('resetPassword').value;
+  const errDiv = document.getElementById('resetFormError');
+  if (!pw || pw.length < 8) { errDiv.textContent = 'Password must be at least 8 characters.'; errDiv.classList.add('show'); return; }
+  try {
+    await hubRequest(`/hub/admin/employees/${encodeURIComponent(resetTargetId)}/password`, {
+      method: 'POST',
+      body: JSON.stringify({ password: pw })
+    });
+    closeResetModal();
+    alert('Password reset successfully!');
+  } catch (err) {
+    errDiv.textContent = err.message; errDiv.classList.add('show');
+  }
+}
+
+// ── EXPORT ──
+function exportExcel() {
+  if (filteredStudents.length === 0) { alert('No data to export.'); return; }
+  const rows = filteredStudents.map(s => ({
+    'Student No.': s.student_id, 'Full Name': s.full_name,
+    'Year Level': s.year_level ?? '', 'Section': s.section ?? '',
+    'Enrollment Status': s.enrollment_status ?? '',
+  }));
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Students');
+  XLSX.writeFile(wb, `Student_Records_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+function exportPDF() {
+  if (filteredStudents.length === 0) { alert('No data to export.'); return; }
+  const win = window.open('', '_blank');
+  if (!win) { alert('Allow pop-ups to export PDF.'); return; }
+  const now = new Date().toLocaleString();
+  const rows = filteredStudents.map(s => `
+    <tr><td>${escapeHTML(s.student_id)}</td><td>${escapeHTML(s.full_name)}</td><td>${escapeHTML(s.year_level??'—')}</td><td>${escapeHTML(s.section??'—')}</td><td>${escapeHTML(s.enrollment_status??'—')}</td></tr>`).join('');
+  win.document.write(`<!DOCTYPE html><html><head><title>Student Records Export</title>
+    <style>
+      body{font-family:Georgia,serif;padding:32px;color:#232323}
+      h1{font-size:20px;color:#1b2a4a;margin-bottom:4px}
+      .sub{font-size:12px;color:#6b6b6b;margin-bottom:24px}
+      table{width:100%;border-collapse:collapse;font-size:13px}
+      th{background:#1b2a4a;color:#d9a441;padding:9px 10px;text-align:left;font-size:11px;text-transform:uppercase}
+      td{padding:9px 10px;border-bottom:1px solid #e3ded2}
+      tr:nth-child(even) td{background:#f7f5f0}
+      .footer{margin-top:24px;font-size:11px;color:#6b6b6b}
+    </style></head><body>
+    <h1>Student Records — Admin Export</h1>
+    <div class="sub">Group 3 &middot; Generated: ${now} &middot; Total: ${filteredStudents.length} records</div>
+    <table><thead><tr><th>Student No.</th><th>Full Name</th><th>Year</th><th>Section</th><th>Status</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+    <div class="footer">Confidential — Authorized Access Only &middot; Admin Hub Group 3</div>
+    <script>window.onload=()=>{window.print()}<\/script></body></html>`);
+  win.document.close();
+}
+</script>
+</body>
+</html>

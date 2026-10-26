@@ -304,6 +304,12 @@ main { max-width: 1060px; margin: 0 auto; padding: 28px 20px 80px; }
 const HUB = 'https://it-department-hub.onrender.com';
 let currentTab = 'student';
 
+function escapeHTML(value) {
+  return String(value ?? '').replace(/[&<>"']/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[character]);
+}
+
 // ── Tab switch ────────────────────────────────────────────────────────────────
 function switchTab(tab) {
   currentTab = tab;
@@ -438,14 +444,14 @@ async function loadMyRecords() {
     });
     if (res.status === 401 || res.status === 403) { doLogout(); showLogin('Your session ended. Please sign in again.'); return; }
     if (res.status === 404) {
-      content.innerHTML = `<div class="placeholder"><div class="mark">—</div>No record found for <strong>${id}</strong>.</div>`;
+      content.innerHTML = `<div class="placeholder"><div class="mark">—</div>No record found for <strong>${escapeHTML(id)}</strong>.</div>`;
       return;
     }
     const data = await res.json();
     if (data.error) throw new Error(data.error);
     content.innerHTML = renderDashboard(data);
   } catch (err) {
-    content.innerHTML = `<div class="placeholder"><div class="mark">—</div>Could not load records: ${err.message}</div>`;
+    content.innerHTML = `<div class="placeholder"><div class="mark">—</div>Could not load records: ${escapeHTML(err.message)}</div>`;
   }
 }
 
@@ -457,28 +463,44 @@ async function doStaffSearch() {
   document.getElementById('staffStudentDetail').style.display = 'none';
   resultsDiv.innerHTML = '<div class="loading-spinner">Searching…</div>';
   try {
-    const res = await fetch(`${HUB}/hub/students/search?q=${encodeURIComponent(q)}`);
+    const token = sessionStorage.getItem('hubToken');
+    const res = await fetch(`${HUB}/hub/students/search?q=${encodeURIComponent(q)}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
     const data = await res.json();
     if (!Array.isArray(data) || data.length === 0) {
-      resultsDiv.innerHTML = `<div class="placeholder"><div class="mark">—</div>No students found for "<strong>${q}</strong>".</div>`;
+      resultsDiv.innerHTML = `<div class="placeholder"><div class="mark">—</div>No students found for "<strong>${escapeHTML(q)}</strong>".</div>`;
       return;
     }
     resultsDiv.innerHTML = `
       <div class="search-results">
         ${data.map(s => `
-          <div class="search-result-row" onclick="loadStaffStudentDetail('${s.student_id}')">
+          <div class="search-result-row" data-student-id="${escapeHTML(s.student_id)}" role="button" tabindex="0">
             <div>
-              <div class="sr-name">${s.full_name}</div>
-              <div class="sr-meta">${s.student_id} &middot; Year ${s.year_level ?? '—'} &middot; ${s.section ?? '—'} &middot; <span class="badge ${badgeClass(s.enrollment_status)}" style="font-size:10px;">${s.enrollment_status ?? 'unknown'}</span></div>
+              <div class="sr-name">${escapeHTML(s.full_name)}</div>
+              <div class="sr-meta">${escapeHTML(s.student_id)} &middot; Year ${escapeHTML(s.year_level ?? '—')} &middot; ${escapeHTML(s.section ?? '—')} &middot; <span class="badge ${badgeClass(s.enrollment_status)}" style="font-size:10px;">${escapeHTML(s.enrollment_status ?? 'unknown')}</span></div>
             </div>
             <span class="sr-arrow">›</span>
           </div>
         `).join('')}
       </div>`;
   } catch (err) {
-    resultsDiv.innerHTML = `<div class="placeholder"><div class="mark">—</div>Search failed: ${err.message}</div>`;
+    resultsDiv.innerHTML = `<div class="placeholder"><div class="mark">—</div>Search failed: ${escapeHTML(err.message)}</div>`;
   }
 }
+
+document.getElementById('staffSearchResults').addEventListener('click', event => {
+  const row = event.target.closest('[data-student-id]');
+  if (row) loadStaffStudentDetail(row.dataset.studentId);
+});
+
+document.getElementById('staffSearchResults').addEventListener('keydown', event => {
+  if (event.key !== 'Enter' && event.key !== ' ') return;
+  const row = event.target.closest('[data-student-id]');
+  if (!row) return;
+  event.preventDefault();
+  loadStaffStudentDetail(row.dataset.studentId);
+});
 
 // ── Employee: view a student's full record ────────────────────────────────────
 async function loadStaffStudentDetail(id) {
@@ -497,7 +519,7 @@ async function loadStaffStudentDetail(id) {
     if (data.error) throw new Error(data.error);
     contentDiv.innerHTML = renderDashboard(data);
   } catch (err) {
-    contentDiv.innerHTML = `<div class="placeholder"><div class="mark">—</div>Could not load record: ${err.message}</div>`;
+    contentDiv.innerHTML = `<div class="placeholder"><div class="mark">—</div>Could not load record: ${escapeHTML(err.message)}</div>`;
   }
 }
 
@@ -529,18 +551,18 @@ function renderProfile(p) {
   return `
     <div class="profile-banner">
       <div>
-        <div class="pname">${p.full_name}</div>
-        <div class="pmeta">Student No. ${p.student_id}</div>
+        <div class="pname">${escapeHTML(p.full_name)}</div>
+        <div class="pmeta">Student No. ${escapeHTML(p.student_id)}</div>
         <div class="profile-fields">
-          <div class="pf-item"><div class="pf-label">Year Level</div><div class="pf-value">${p.year_level ?? '—'}</div></div>
-          <div class="pf-item"><div class="pf-label">Section</div><div class="pf-value">${p.section ?? '—'}</div></div>
-          <div class="pf-item"><div class="pf-label">Email</div><div class="pf-value">${p.email ?? '—'}</div></div>
-          <div class="pf-item"><div class="pf-label">Contact</div><div class="pf-value">${p.contact_number ?? '—'}</div></div>
-          <div class="pf-item"><div class="pf-label">Address</div><div class="pf-value">${p.address ?? '—'}</div></div>
+          <div class="pf-item"><div class="pf-label">Year Level</div><div class="pf-value">${escapeHTML(p.year_level ?? '—')}</div></div>
+          <div class="pf-item"><div class="pf-label">Section</div><div class="pf-value">${escapeHTML(p.section ?? '—')}</div></div>
+          <div class="pf-item"><div class="pf-label">Email</div><div class="pf-value">${escapeHTML(p.email ?? '—')}</div></div>
+          <div class="pf-item"><div class="pf-label">Contact</div><div class="pf-value">${escapeHTML(p.contact_number ?? '—')}</div></div>
+          <div class="pf-item"><div class="pf-label">Address</div><div class="pf-value">${escapeHTML(p.address ?? '—')}</div></div>
         </div>
       </div>
       <div style="padding-top:4px;">
-        <span class="badge ${badgeClass(p.enrollment_status)}">${p.enrollment_status ?? 'unknown'}</span>
+        <span class="badge ${badgeClass(p.enrollment_status)}">${escapeHTML(p.enrollment_status ?? 'unknown')}</span>
       </div>
     </div>`;
 }
@@ -548,17 +570,17 @@ function renderProfile(p) {
 function renderGrades(grades, err) {
   const head = `<div class="card-head"><span>Grades on File</span><span class="sys-badge up">Student Records ↑</span></div>`;
   if (err && err !== 'null') {
-    return `<div class="data-card full">${head}<div class="card-body"><div class="offline-notice"><span class="off-icon">—</span><strong>Could not load grades</strong>${err}</div></div></div>`;
+    return `<div class="data-card full">${head}<div class="card-body"><div class="offline-notice"><span class="off-icon">—</span><strong>Could not load grades</strong>${escapeHTML(err)}</div></div></div>`;
   }
   if (!grades || grades.length === 0) {
     return `<div class="data-card full">${head}<div class="card-body"><div class="offline-notice"><span class="off-icon">—</span><strong>No grades on file yet.</strong></div></div></div>`;
   }
   const rows = grades.map(g => `
     <tr>
-      <td>${g.subject_code}</td><td>${g.subject_name}</td>
-      <td>${g.school_year ?? '—'}</td><td>${g.semester ?? '—'}</td>
-      <td class="grade-num">${g.grade ?? '—'}</td>
-      <td class="${g.remarks === 'passed' ? 'rmk-passed' : g.remarks === 'failed' ? 'rmk-failed' : g.remarks === 'incomplete' ? 'rmk-inc' : ''}">${g.remarks ?? '—'}</td>
+      <td>${escapeHTML(g.subject_code)}</td><td>${escapeHTML(g.subject_name)}</td>
+      <td>${escapeHTML(g.school_year ?? '—')}</td><td>${escapeHTML(g.semester ?? '—')}</td>
+      <td class="grade-num">${escapeHTML(g.grade ?? '—')}</td>
+      <td class="${g.remarks === 'passed' ? 'rmk-passed' : g.remarks === 'failed' ? 'rmk-failed' : g.remarks === 'incomplete' ? 'rmk-inc' : ''}">${escapeHTML(g.remarks ?? '—')}</td>
     </tr>`).join('');
   return `
     <div class="data-card full">${head}
@@ -584,8 +606,8 @@ function renderEnrollment(data, err) {
   }
   const items = data.map(s => `
     <div class="sched-item">
-      <div class="sched-subj">${s.subject_code} — ${s.subject_name}</div>
-      <div class="sched-detail">${[s.schedule, s.room, s.instructor].filter(Boolean).join(' · ')}</div>
+      <div class="sched-subj">${escapeHTML(s.subject_code)} — ${escapeHTML(s.subject_name)}</div>
+      <div class="sched-detail">${escapeHTML([s.schedule, s.room, s.instructor].filter(Boolean).join(' · '))}</div>
     </div>`).join('');
   return `<div class="data-card">${head}<div class="card-body">${items}</div></div>`;
 }
@@ -603,7 +625,7 @@ function renderFinance(data, err) {
   if (data.transactions && data.transactions.length > 0) {
     txRows = `<table class="mini-table" style="margin-top:10px;">
       <thead><tr><th>Date</th><th>Description</th><th>Amount</th></tr></thead>
-      <tbody>${data.transactions.map(tx => `<tr><td>${tx.date ?? '—'}</td><td>${tx.description ?? '—'}</td><td class="grade-num">${fmt(tx.amount)}</td></tr>`).join('')}</tbody>
+      <tbody>${data.transactions.map(tx => `<tr><td>${escapeHTML(tx.date ?? '—')}</td><td>${escapeHTML(tx.description ?? '—')}</td><td class="grade-num">${escapeHTML(fmt(tx.amount))}</td></tr>`).join('')}</tbody>
     </table>`;
   }
   return `<div class="data-card">${head}<div class="card-body">
@@ -627,11 +649,11 @@ function renderLMS(data, err) {
   }
   const items = data.map(c => `
     <div class="course-item">
-      <div class="course-name">${c.course_code} — ${c.course_name}</div>
-      <div class="course-meta">${[c.instructor, c.lms_grade !== undefined && c.lms_grade !== null ? `Grade: ${c.lms_grade}` : null].filter(Boolean).join(' · ')}</div>
-      ${c.progress_pct !== undefined && c.progress_pct !== null ? `
-        <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(100, c.progress_pct)}%"></div></div>
-        <div style="font-size:11px;color:var(--ink-soft);margin-top:3px;">${c.progress_pct}% complete</div>` : ''}
+      <div class="course-name">${escapeHTML(c.course_code)} — ${escapeHTML(c.course_name)}</div>
+      <div class="course-meta">${escapeHTML([c.instructor, c.lms_grade !== undefined && c.lms_grade !== null ? `Grade: ${c.lms_grade}` : null].filter(Boolean).join(' · '))}</div>
+      ${Number.isFinite(Number(c.progress_pct)) && c.progress_pct !== undefined && c.progress_pct !== null ? `
+        <div class="progress-bar"><div class="progress-fill" style="width:${Math.max(0, Math.min(100, Number(c.progress_pct)))}%"></div></div>
+        <div style="font-size:11px;color:var(--ink-soft);margin-top:3px;">${escapeHTML(Number(c.progress_pct))}% complete</div>` : ''}
     </div>`).join('');
   return `<div class="data-card">${head}<div class="card-body">${items}</div></div>`;
 }
