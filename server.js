@@ -190,7 +190,9 @@ app.get('/hub/students/:id/enrollment', async (req, res) => {
   const sys = registry['enrollment'];
   if (!sys) return res.status(503).json({ error: 'Enrollment system not configured yet' });
   try {
-    const r = await fetch(`${sys.baseUrl}/api/students/${req.params.id}/schedule`);
+    const r = await fetch(`${sys.baseUrl}/api/students/${req.params.id}/schedule`, {
+      headers: { 'x-api-key': 'csfj-hub-secret-2026' }
+    });
     const data = await r.json();
     res.status(r.status).json(data);
   } catch (err) {
@@ -234,8 +236,8 @@ app.get('/hub/students/:id/full', requireOwnRecord, async (req, res) => {
     try { return { ok: true, data: await fn() }; }
     catch (e) { return { ok: false, error: e.message }; }
   };
-  const fetchJSON = async (url) => {
-    const r = await fetch(url);
+  const fetchJSON = async (url, headers = {}) => {
+    const r = await fetch(url, { headers });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     return r.json();
   };
@@ -247,7 +249,7 @@ app.get('/hub/students/:id/full', requireOwnRecord, async (req, res) => {
   const [profile, grades, enrollmentData, financeData, lmsData] = await Promise.all([
     safe(() => fetchJSON(`${srBase}/api/students/${id}/profile`)),
     safe(() => fetchJSON(`${srBase}/api/students/${id}/grades`)),
-    enrollment ? safe(() => fetchJSON(`${enrollment.baseUrl}/api/students/${id}/schedule`)) : { ok: false, error: 'not-configured' },
+    enrollment ? safe(() => fetchJSON(`${enrollment.baseUrl}/api/students/${id}/schedule`, { 'x-api-key': 'csfj-hub-secret-2026' })) : { ok: false, error: 'not-configured' },
     finance ? safe(() => fetchJSON(`${finance.baseUrl}/api/students/${id}/balance`)) : { ok: false, error: 'not-configured' },
     lms ? safe(() => fetchJSON(`${lms.baseUrl}/api/students/${id}/courses`)) : { ok: false, error: 'not-configured' },
   ]);
