@@ -269,5 +269,16 @@ app.get('/hub/students/:id/full', requireOwnRecord, async (req, res) => {
   });
 });
 
+// Create the main database table on startup
+pool.query(`CREATE TABLE IF NOT EXISTS main_students (
+  student_id TEXT PRIMARY KEY,
+  full_name TEXT,
+  profile JSONB,
+  grades JSONB,
+  enrollment JSONB,
+  finance JSONB,
+  lms JSONB,
+  synced_at TIMESTAMPTZ DEFAULT NOW()
+)`).then(() => console.log('main_students ready')).catch(e => console.log('main_students error: ' + e.message));
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`Central Hub running on port ${PORT}`));
